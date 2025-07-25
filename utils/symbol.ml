@@ -169,3 +169,48 @@ let for_new_const_in_current_unit () =
 
 let is_predef_exn t =
   CU.equal t.compilation_unit CU.predef_exn
+
+(* Debug *)
+
+let symbol_fmt =
+  Format.formatter_of_out_channel
+    Out_channel.(
+      open_gen
+        [ Open_binary; Open_creat; Open_append; Open_wronly ]
+        0o644 "/tmp/oxcaml-log")
+
+let uuid =
+  let b = Buffer.create 100 in
+  Array.iter
+    (fun a ->
+      Buffer.add_string b a;
+      Buffer.add_char b '\000')
+    Sys.argv;
+  let dig = Digest.(to_hex (string (Buffer.contents b))) in
+  String.sub dig 0 7
+
+let _ =
+  Format.(
+    fprintf symbol_fmt "@[<hov 2>(* %s:@ @[<hov 2>%a@]@ *)@]@." uuid
+      (pp_print_list ~pp_sep:pp_print_space pp_print_string)
+      (Array.to_list Sys.argv))
+
+let trace f t = Format.fprintf symbol_fmt "%s %s: %a\n" uuid f print t
+
+let trace1 f f' x =
+  let t = f x in
+  trace f' t;
+  t
+
+let trace2 f f' x y =
+  let t = f x y in
+  trace f' t;
+  t
+
+let for_predef_ident = trace1 for_predef_ident "for_predef_ident"
+let for_local_ident = trace1 for_local_ident "for_local_ident"
+let for_compilation_unit = trace1 for_compilation_unit "for_compilation_unit"
+let for_current_unit = trace1 for_current_unit "for_current_unit"
+let for_new_const_in_current_unit = trace1 for_new_const_in_current_unit "for_new_const_in_current_unit"
+let unsafe_create = trace2 unsafe_create "unsafe_create"
+let for_name = trace2 for_name "for_name"
