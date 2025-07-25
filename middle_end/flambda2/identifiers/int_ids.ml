@@ -415,6 +415,7 @@ module Variable = struct
       (* CR mshinwell: check for overflow on 32 bit *)
       incr previous_name_stamp;
       !previous_name_stamp
+    and name = "VAR" ^ name
     in
     let data : Variable_data.t =
       { compilation_unit = Compilation_unit.get_current_exn ();
@@ -776,8 +777,8 @@ module Code_id = struct
     let linkage_name =
       let name =
         if Flambda_features.Expert.shorten_symbol_names ()
-        then Printf.sprintf "%s_%d" name name_stamp
-        else Printf.sprintf "%s_%d_code" name name_stamp
+        then Printf.sprintf "CODEID%s_%d" name name_stamp
+        else Printf.sprintf "CODEID%s_%d_code" name name_stamp
       in
       Symbol0.for_name compilation_unit name |> Symbol0.linkage_name
     in
