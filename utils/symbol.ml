@@ -45,33 +45,117 @@ include Identifiable.Make (struct
   let print ppf t = Linkage_name.print ppf t.linkage_name
 end)
 
+module type Name_mangling_scheme = sig
+  val linkage_name_for_compilation_unit : Compilation_unit.t -> Linkage_name.t
+  val this_is_ocamlc : bool ref
+  val force_runtime4_symbols : bool ref
+  val member_separator : unit -> string
+end
+
+module V0 : Name_mangling_scheme = struct
+  let caml_symbol_prefix = "caml"
+
+  (* CR ocaml 5 all-runtime5: Remove this_is_ocamlc and force_runtime4_symbols
+     once fully on runtime5 *)
+  let this_is_ocamlc = ref false
+  let force_runtime4_symbols = ref true
+
+
+  let upstream_runtime5_symbol_separator =
+    match Config.ccomp_type with
+    | "msvc" -> '$' (* MASM does not allow for dots in symbol names *)
+    | _ -> '.'
+
+  let separator () =
+    if !this_is_ocamlc then
+      Misc.fatal_error "Didn't expect utils/symbol.ml to be used in ocamlc";
+    if Config.runtime5 && not !force_runtime4_symbols then
+      Printf.sprintf "%c" upstream_runtime5_symbol_separator
+    else
+      "__"
+
+  let member_separator = separator
+
+  (* Constants used within this module *)
+  let _pack_separator = separator
+  let _instance_separator = "____"
+  let _instance_separator_depth_char = '_'
+
+  let linkage_name_for_compilation_unit comp_unit =
+    (* CR-someday lmaurer: If at all possible, just use square brackets instead of
+       this unholy underscore encoding. For now I'm following the original
+       practice of avoiding non-identifier characters. *)
+    let for_pack_prefix, name, flattened_instance_args = CU.flatten comp_unit in
+    let name = CU.Name.to_string name in
+    let suffix =
+      if not (CU.Prefix.is_empty for_pack_prefix)
+      then begin
+        assert (flattened_instance_args = []);
+        let pack_names =
+          CU.Prefix.to_list for_pack_prefix |> List.map CU.Name.to_string
+        in
+        String.concat (_pack_separator ()) (pack_names @ [name])
+      end else begin
+        let arg_segments =
+          List.map
+            (fun (depth, _param, value) ->
+               let extra_separators =
+                 String.make depth _instance_separator_depth_char
+               in
+               let value = value |> CU.Name.to_string in
+               String.concat "" [_instance_separator; extra_separators; value])
+            flattened_instance_args
+        in
+        String.concat "" arg_segments
+      end
+    in
+    caml_symbol_prefix ^ name ^ suffix
+    |> Linkage_name.of_string
+end
+
+module V1 : Name_mangling_scheme = struct
+  (* V1 scheme - placeholder for new implementation *)
+  let this_is_ocamlc = ref false
+  let force_runtime4_symbols = ref true
+
+
+  (* V1 could have different separator logic *)
+  let separator () =
+    if !this_is_ocamlc then
+      Misc.fatal_error "Didn't expect utils/symbol.ml to be used in ocamlc";
+    if Config.runtime5 && not !force_runtime4_symbols then
+      "."  (* Different from V0 - always use dot for V1 *)
+    else
+      "__"
+
+  let member_separator = separator
+
+  let linkage_name_for_compilation_unit comp_unit =
+    (* Dummy implementation: just use V0 for now *)
+    V0.linkage_name_for_compilation_unit comp_unit
+end
+
+let current_scheme : (module Name_mangling_scheme) =
+  match Config.name_mangling_version with
+  | "V0" -> (module V0)
+  | "V1" -> (module V1)
+  | version -> Misc.fatal_errorf "Unknown name mangling version: %s" version
+
+(* Compatibility accessors - use current scheme's references *)
+let this_is_ocamlc () =
+  let (module Scheme) = current_scheme in
+  Scheme.this_is_ocamlc := true
+
+let force_runtime4_symbols () =
+  let (module Scheme) = current_scheme in
+  Scheme.force_runtime4_symbols := true
+
+(* Compatibility accessors for existing code *)
 let caml_symbol_prefix = "caml"
 
-(* CR ocaml 5 all-runtime5: Remove this_is_ocamlc and force_runtime4_symbols
-   once fully on runtime5 *)
-let this_is_ocamlc = ref false
-let force_runtime4_symbols = ref true
-
-let upstream_runtime5_symbol_separator =
-  match Config.ccomp_type with
-  | "msvc" -> '$' (* MASM does not allow for dots in symbol names *)
-  | _ -> '.'
-
-let separator () =
-  if !this_is_ocamlc then
-    Misc.fatal_error "Didn't expect utils/symbol.ml to be used in ocamlc";
-  if Config.runtime5 && not !force_runtime4_symbols then
-    Printf.sprintf "%c" upstream_runtime5_symbol_separator
-  else
-    "__"
-
-let this_is_ocamlc () = this_is_ocamlc := true
-let force_runtime4_symbols () = force_runtime4_symbols := true
-
-let pack_separator = separator
-let instance_separator = "____"
-let instance_separator_depth_char = '_'
-let member_separator = separator
+let member_separator () =
+  let (module Scheme) = current_scheme in
+  Scheme.member_separator ()
 
 let linkage_name t = t.linkage_name
 
@@ -91,35 +175,8 @@ let compilation_unit t = t.compilation_unit
    [Linkage_name.for_current_unit] *)
 
 let linkage_name_for_compilation_unit comp_unit =
-  (* CR-someday lmaurer: If at all possible, just use square brackets instead of
-     this unholy underscore encoding. For now I'm following the original
-     practice of avoiding non-identifier characters. *)
-  let for_pack_prefix, name, flattened_instance_args = CU.flatten comp_unit in
-  let name = CU.Name.to_string name in
-  let suffix =
-    if not (CU.Prefix.is_empty for_pack_prefix)
-    then begin
-      assert (flattened_instance_args = []);
-      let pack_names =
-        CU.Prefix.to_list for_pack_prefix |> List.map CU.Name.to_string
-      in
-      String.concat (pack_separator ()) (pack_names @ [name])
-    end else begin
-      let arg_segments =
-        List.map
-          (fun (depth, _param, value) ->
-             let extra_separators =
-               String.make depth instance_separator_depth_char
-             in
-             let value = value |> CU.Name.to_string in
-             String.concat "" [instance_separator; extra_separators; value])
-          flattened_instance_args
-      in
-      String.concat "" arg_segments
-    end
-  in
-  caml_symbol_prefix ^ name ^ suffix
-  |> Linkage_name.of_string
+  let (module Scheme) = current_scheme in
+  Scheme.linkage_name_for_compilation_unit comp_unit
 
 let for_predef_ident id =
   assert (Ident.is_predef id);
