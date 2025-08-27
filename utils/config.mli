@@ -203,6 +203,9 @@ val with_address_sanitizer : bool
 val with_cpp_mangling : bool
 (** Whether symbol names should be following the cpp mangling convention *)
 
+val name_mangling_version : string
+(** The name mangling version to use (V0 or V1) *)
+
 val ext_obj: string
 (** Extension for object files, e.g. [.o] under Unix. *)
 

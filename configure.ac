@@ -344,6 +344,7 @@ AC_SUBST([no_partial_inlining_cflags])
 AC_SUBST([frame_pointers])
 AC_SUBST([address_sanitizer])
 AC_SUBST([cpp_mangling])
+AC_SUBST([name_mangling_version])
 AC_SUBST([flambda])
 AC_SUBST([flambda2])
 AC_SUBST([flambda_invariants])
@@ -587,6 +588,16 @@ AC_ARG_ENABLE([address-sanitizer],
 AC_ARG_ENABLE([cpp-mangling],
   [AS_HELP_STRING([--enable-cpp-mangling],
     [use cpp mangling for exported symbols])])
+
+AC_ARG_ENABLE([name-mangling],
+  [AS_HELP_STRING([--enable-name-mangling=VERSION],
+    [specify name mangling version (V0 or V1, default: V0)])],
+  [AS_CASE([$enable_name_mangling],
+    [V0], [name_mangling_version=V0],
+    [V1], [name_mangling_version=V1],
+    [yes], [name_mangling_version=V0],
+    [*], [AC_MSG_ERROR([Invalid name mangling version: must be 'V0' or 'V1'])])],
+  [name_mangling_version=V0])
 
 AC_ARG_ENABLE([naked-pointers], [],
   [AS_IF([test "x$enableval" != 'xno'],
@@ -2733,6 +2744,12 @@ AS_IF([test x"$enable_cpp_mangling" = "xyes"],
   [cpp_mangling=true
     AC_DEFINE([WITH_CPP_MANGLING])],
   [cpp_mangling=false])
+
+## Name mangling version
+
+AS_CASE([$name_mangling_version],
+  [V0], [AC_DEFINE([NAME_MANGLING_V0])],
+  [V1], [AC_DEFINE([NAME_MANGLING_V1])])
 
 ## Check for mmap support for huge pages and contiguous heap
 OCAML_MMAP_SUPPORTS_HUGE_PAGES
