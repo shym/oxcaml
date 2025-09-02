@@ -103,6 +103,7 @@ let configuration_variables () =
   p_bool "with_frame_pointers" with_frame_pointers;
   p_bool "with_address_sanitizer" with_address_sanitizer;
   p_bool "with_cpp_mangling" with_cpp_mangling;
+  p "name_mangling_version" name_mangling_version;
   p "ext_exe" ext_exe;
   p "ext_obj" ext_obj;
   p "ext_asm" ext_asm;
