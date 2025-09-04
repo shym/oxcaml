@@ -64,7 +64,32 @@ end
 include Thing
 include Identifiable.Make (Thing)
 
-let create name = { name; already_encoded = false }
+let symbol_fmt =
+  Format.formatter_of_out_channel
+    Out_channel.(
+      open_gen
+        [ Open_binary; Open_creat; Open_append; Open_wronly ]
+        0o644 "/tmp/oxcaml-log")
+
+let uuid =
+  let b = Buffer.create 100 in
+  Array.iter
+    (fun a ->
+      Buffer.add_string b a;
+      Buffer.add_char b '\000')
+    Sys.argv;
+  let dig = Digest.(to_hex (string (Buffer.contents b))) in
+  String.sub dig 0 7
+
+let _ =
+  Format.(
+    fprintf symbol_fmt "@[<hov 2>(* %s:@ @[<hov 2>%a@]@ *)@]@." uuid
+      (pp_print_list ~pp_sep:pp_print_space pp_print_string)
+      (Array.to_list Sys.argv))
+
+let create name =
+  Format.fprintf symbol_fmt "%s: %s\n" uuid name;
+  { name; already_encoded = false }
 
 let create_without_encoding name = { name; already_encoded = true }
 
