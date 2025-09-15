@@ -19,8 +19,8 @@
 module CU = Compilation_unit
 
 type t = {
-  compilation_unit : Compilation_unit.t;
-  linkage_name : Linkage_name.t;
+  compilation_unit : Compilation_unit.t; (* ML source file associated with this symbol *)
+  linkage_name : Linkage_name.t;         (* Mangled name that appears in the object file *)
   hash : int;
 }
 
@@ -45,21 +45,20 @@ include Identifiable.Make (struct
   let print ppf t = Linkage_name.print ppf t.linkage_name
 end)
 
+(* Abstract how we generate [Linkage_name.t] *)
 module type Name_mangling_scheme = sig
   val linkage_name_for_compilation_unit : Compilation_unit.t -> Linkage_name.t
   val this_is_ocamlc : bool ref
   val force_runtime4_symbols : bool ref
-  val member_separator : unit -> string
 end
 
-module V0 : Name_mangling_scheme = struct
-  let caml_symbol_prefix = "caml"
+module V0 = struct
+  let caml_symbol_prefix () = "caml"
 
   (* CR ocaml 5 all-runtime5: Remove this_is_ocamlc and force_runtime4_symbols
      once fully on runtime5 *)
   let this_is_ocamlc = ref false
   let force_runtime4_symbols = ref true
-
 
   let upstream_runtime5_symbol_separator =
     match Config.ccomp_type with
@@ -74,12 +73,11 @@ module V0 : Name_mangling_scheme = struct
     else
       "__"
 
-  let member_separator = separator
-
   (* Constants used within this module *)
-  let _pack_separator = separator
-  let _instance_separator = "____"
-  let _instance_separator_depth_char = '_'
+  let member_separator = separator
+  let pack_separator = separator
+  let instance_separator = "____"
+  let instance_separator_depth_char = '_'
 
   let linkage_name_for_compilation_unit comp_unit =
     (* CR-someday lmaurer: If at all possible, just use square brackets instead of
@@ -94,45 +92,123 @@ module V0 : Name_mangling_scheme = struct
         let pack_names =
           CU.Prefix.to_list for_pack_prefix |> List.map CU.Name.to_string
         in
-        String.concat (_pack_separator ()) (pack_names @ [name])
+        String.concat (pack_separator ()) (pack_names @ [name])
       end else begin
         let arg_segments =
           List.map
             (fun (depth, _param, value) ->
                let extra_separators =
-                 String.make depth _instance_separator_depth_char
+                 String.make depth instance_separator_depth_char
                in
                let value = value |> CU.Name.to_string in
-               String.concat "" [_instance_separator; extra_separators; value])
+               String.concat "" [instance_separator; extra_separators; value])
             flattened_instance_args
         in
         String.concat "" arg_segments
       end
     in
-    caml_symbol_prefix ^ name ^ suffix
+    caml_symbol_prefix () ^ name ^ suffix
     |> Linkage_name.of_string
 end
 
-module V1 : Name_mangling_scheme = struct
-  (* V1 scheme - placeholder for new implementation *)
+module V1 = struct
   let this_is_ocamlc = ref false
   let force_runtime4_symbols = ref true
 
+  let is_out_char = function
+    | '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z' | '_' -> true
+    | _ -> false
 
-  (* V1 could have different separator logic *)
-  let separator () =
-    if !this_is_ocamlc then
-      Misc.fatal_error "Didn't expect utils/symbol.ml to be used in ocamlc";
-    if Config.runtime5 && not !force_runtime4_symbols then
-      "."  (* Different from V0 - always use dot for V1 *)
-    else
-      "__"
+  let upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  let hex = "0123456789abcdef"
 
-  let member_separator = separator
+  (** Encode a length as base-26 number using [[A-Z]] *)
+  let rec encode_len buf len =
+    let r = len mod 26 and q = len / 26 in
+    if q > 0 then encode_len buf q;
+    Buffer.add_char buf upper.[r]
+
+  let encode_char buf c =
+    let c = Char.code c in
+    let h = (c lsr 4) land 0xf and l = c land 0xf in
+    Buffer.add_char buf (hex.[h]);
+    Buffer.add_char buf (hex.[l])
+
+  type encode_state = Raw | Enc
+
+  let encode sym =
+    let raw = Buffer.create (String.length sym)
+    and enc = Buffer.create (2 * String.length sym)
+    and ins_pos = ref 0 in
+    let rec aux i = function
+      | _ when i >= String.length sym ->
+         Printf.sprintf "%s_%s" (Buffer.contents enc) (Buffer.contents raw)
+      | Raw ->
+         if is_out_char sym.[i] then (
+           Buffer.add_char raw sym.[i];
+           incr ins_pos;
+           aux (i + 1) Raw)
+         else (
+           encode_len enc !ins_pos;
+           encode_char enc sym.[i];
+           aux (i + 1) Enc)
+      | Enc ->
+         if is_out_char sym.[i] then (
+           Buffer.add_char raw sym.[i];
+           ins_pos := 1;
+           aux (i + 1) Raw)
+         else (
+           encode_char enc sym.[i];
+           aux (i + 1) Enc)
+    in
+    aux 0 Raw
+
+  let mangle_chunk sym =
+    let pref, rsym =
+      if String.for_all is_out_char sym then ("", sym) else ("u", encode sym)
+    in
+    Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
+
+  let mangle ty (sym : string list) =
+    match ty with
+    | `Named ->
+       let b = Buffer.create 10 in
+       Buffer.add_string b "_ON";
+       List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) sym;
+       Buffer.contents b
+    | `Anonymous -> "_OA"
 
   let linkage_name_for_compilation_unit comp_unit =
-    (* Dummy implementation: just use V0 for now *)
-    V0.linkage_name_for_compilation_unit comp_unit
+    let for_pack_prefix, name, flattened_instance_args = CU.flatten comp_unit in
+    let name = CU.Name.to_string name in
+
+    let linkage_name =
+      if not (CU.Prefix.is_empty for_pack_prefix)
+      then begin
+          assert (flattened_instance_args = []);
+          let pack_names =
+            CU.Prefix.to_list for_pack_prefix |> List.map CU.Name.to_string
+          in
+          mangle `Named (name :: (pack_names @ [name]))
+        end else begin
+          (* TODO For Parameterised libraries???  *)
+          let instance_separator = "____" in
+          let instance_separator_depth_char = '_' in
+          let arg_segments =
+            List.map
+              (fun (depth, _param, value) ->
+                let extra_separators =
+                  String.make depth instance_separator_depth_char
+                in
+                let value = value |> CU.Name.to_string in
+                String.concat "" [instance_separator; extra_separators; value])
+              flattened_instance_args
+          in
+          mangle `Named (name :: arg_segments)
+        end
+    in
+    Linkage_name.of_string linkage_name
+
 end
 
 let current_scheme : (module Name_mangling_scheme) =
@@ -151,29 +227,32 @@ let force_runtime4_symbols () =
   Scheme.force_runtime4_symbols := true
 
 (* Compatibility accessors for existing code *)
-let caml_symbol_prefix = "caml"
-
-let member_separator () =
-  let (module Scheme) = current_scheme in
-  Scheme.member_separator ()
+(* let caml_symbol_prefix () = *)
+(*   let (module Scheme) = current_scheme in *)
+(*   Scheme.caml_symbol_prefix () *)
 
 let linkage_name t = t.linkage_name
 
+(* TODO This needs to be updated for V1 to remove the `_O` prefix *)
 let linkage_name_for_ocamlobjinfo t =
+  linkage_name t |> Linkage_name.to_string
   (* For legacy compatibility, even though displaying "Foo.Bar" is nicer
      than "Foo__Bar" *)
-  let linkage_name = linkage_name t |> Linkage_name.to_string in
-  assert (Misc.Stdlib.String.begins_with linkage_name
-            ~prefix:caml_symbol_prefix);
-  let prefix_len = String.length caml_symbol_prefix in
-  String.sub linkage_name prefix_len (String.length linkage_name - prefix_len)
+  (* let (module Scheme) = current_scheme in *)
+  (* let caml_symbol_prefix = Scheme.caml_symbol_prefix () in *)
+
+  (* let linkage_name = linkage_name t |> Linkage_name.to_string in *)
+  (* assert (Misc.Stdlib.String.begins_with linkage_name *)
+  (*           ~prefix:(caml_symbol_prefix)); *)
+  (* let prefix_len = String.length (caml_symbol_prefix) in *)
+  (* String.sub linkage_name prefix_len (String.length linkage_name - prefix_len) *)
 
 let compilation_unit t = t.compilation_unit
 
 (* CR-someday lmaurer: Would be nicer to have some of this logic in
    [Linkage_name]; among other things, we could then define
    [Linkage_name.for_current_unit] *)
-
+(* TODO This should return a Linkage_name.t *)
 let linkage_name_for_compilation_unit comp_unit =
   let (module Scheme) = current_scheme in
   Scheme.linkage_name_for_compilation_unit comp_unit
@@ -193,14 +272,19 @@ let unsafe_create compilation_unit linkage_name =
     hash = Hashtbl.hash linkage_name; }
 
 let for_name compilation_unit name =
-  let prefix =
-    linkage_name_for_compilation_unit compilation_unit |> Linkage_name.to_string
-  in
   let linkage_name =
-    prefix ^ (member_separator ()) ^ name |> Linkage_name.of_string
+    (* Use normal mangling *)
+    let prefix =
+      linkage_name_for_compilation_unit compilation_unit |> Linkage_name.to_string
+    in
+    match Config.name_mangling_version with
+    | "V1" ->
+       Linkage_name.of_string (prefix ^ (V1.mangle_chunk name))
+    | _ ->
+       prefix ^ (V0.member_separator ()) ^ name |> Linkage_name.of_string
   in
   { compilation_unit;
-    linkage_name;
+    linkage_name;               (* TODO This should be a valid Linkage_name *)
     hash = Hashtbl.hash linkage_name; }
 
 let for_local_ident id =
@@ -211,7 +295,7 @@ let for_local_ident id =
 let for_compilation_unit compilation_unit =
   let linkage_name = linkage_name_for_compilation_unit compilation_unit in
   { compilation_unit;
-    linkage_name;
+    linkage_name;               (* TODO This should be a valid Linkage_name *)
     hash = Hashtbl.hash linkage_name;
   }
 

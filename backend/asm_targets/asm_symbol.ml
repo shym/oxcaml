@@ -78,6 +78,7 @@ let escape name =
   if !escaped_nb = 0
   then name
   else
+    (* TODO This should be pulled into Linkage_name or Symbol. *)
     (* Each escaped character is replaced by 3 characters (a $, and 2 for its
        hexadecimal representation)*)
     let b = Buffer.create (String.length name + (2 * !escaped_nb)) in

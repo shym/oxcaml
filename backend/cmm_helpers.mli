@@ -1102,6 +1102,10 @@ val cmm_arith_size : expression -> int option
 
 (* CR lmaurer: Return [Linkage_name.t] instead *)
 val make_symbol : ?compilation_unit:Compilation_unit.t -> string -> string
+(* TODO This is used for C-style symbol names and
+        OCaml symbol names which need name mangling. *)
+
+val make_c_symbol : ?compilation_unit:Compilation_unit.t -> string -> string
 
 val machtype_of_layout : Lambda.layout -> machtype
 

@@ -4054,6 +4054,7 @@ let emit_float_array_constant symb fields cont =
     (floatarray_header (List.length fields))
     (Misc.map_end (fun f -> Cdouble f) fields cont)
 
+(** Create a Linkage_name with OCaml-style *)
 let make_symbol ?compilation_unit name =
   let compilation_unit =
     match compilation_unit with
@@ -4062,6 +4063,15 @@ let make_symbol ?compilation_unit name =
   in
   Symbol.for_name compilation_unit name
   |> Symbol.linkage_name |> Linkage_name.to_string
+
+(** Create a Linkage_name with C-style  *)
+let make_c_symbol ?compilation_unit name =
+  let compilation_unit =
+    match compilation_unit with
+    | None -> Compilation_unit.get_current_exn ()
+    | Some compilation_unit -> compilation_unit
+  in
+  "caml" ^ Compilation_unit.name_as_string compilation_unit ^ "__" ^ name
 
 (* Failure function for closures that should never be called indirectly *)
 
@@ -4211,7 +4221,7 @@ let cint_zero = Cint 0n
 let global_table namelist =
   let mksym name =
     Csymbol_address
-      (global_symbol (make_symbol ~compilation_unit:name "gc_roots"))
+      (global_symbol (make_c_symbol ~compilation_unit:name "gc_roots")) (* TODO Should be C linkage_name *)
   in
   Cdata
     ((Cdefine_symbol (global_symbol "caml_globals") :: List.map mksym namelist)
@@ -4232,7 +4242,7 @@ let globals_map v = global_data "caml_globals_map" v
 let frame_table namelist =
   let mksym name =
     Csymbol_address
-      (global_symbol (make_symbol ~compilation_unit:name "frametable"))
+      (global_symbol (make_c_symbol ~compilation_unit:name "frametable")) (* TODO Should be C linkage_name *)
   in
   Cdata
     (Cdefine_symbol (global_symbol "caml_frametable")
@@ -4282,7 +4292,7 @@ let plugin_header units =
 (* Build the NULL terminated array of gc roots *)
 
 let emit_gc_roots_table ~symbols cont =
-  let table_symbol = global_symbol (make_symbol "gc_roots") in
+  let table_symbol = global_symbol (make_c_symbol "gc_roots") in (* TODO Should be C linkage_name *)
   Cdata
     (Cdefine_symbol table_symbol
      :: List.map (fun s -> Csymbol_address s) symbols
@@ -4653,7 +4663,7 @@ let fundecl fun_name fun_args fun_body fun_codegen_options fun_dbg fun_poll
 (* Gc root table *)
 
 let gc_root_table syms =
-  let table_symbol = make_symbol ?compilation_unit:None "gc_roots" in
+  let table_symbol = make_c_symbol ?compilation_unit:None "gc_roots" in (* TODO Should be C linkage_name *)
   cdata
     (define_symbol { sym_name = table_symbol; sym_global = Global }
     @ List.map symbol_address syms

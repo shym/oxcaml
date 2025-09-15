@@ -2502,7 +2502,7 @@ let end_assembly () =
   D.int64 0L;
   D.align ~fill_x86_bin_emitter:Zero ~bytes:8;
   (* #7887 *)
-  let frametable = Cmm_helpers.make_symbol "frametable" in
+  let frametable = Cmm_helpers.make_c_symbol "frametable" in
   let frametable_sym = S.create frametable in
   D.global frametable_sym;
   D.define_symbol_label ~section:Data frametable_sym;

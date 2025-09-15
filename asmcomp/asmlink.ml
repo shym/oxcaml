@@ -395,9 +395,12 @@ let make_startup_file unix ~ppf_dump ~sourcefile_for_dwarf genfns units cached_g
   (* CR mshinwell: We should have a separate notion of "backend compilation
      unit" really, since the units here don't correspond to .ml source
      files. *)
+  (* TODO Track down how these get used? *)
+  (* let hot_comp_unit = CU.create CU.Prefix.empty (CU.Name.of_string "caml_hot") in *)
   let hot_comp_unit = CU.create CU.Prefix.empty (CU.Name.of_string "_hot") in
   let system_comp_unit =
     CU.create CU.Prefix.empty (CU.Name.of_string "_system") in
+    (* CU.create CU.Prefix.empty (CU.Name.of_string "caml_system") in *)
   let code_comp_units =
     if !Clflags.function_sections then
       hot_comp_unit :: startup_comp_unit :: name_list
@@ -426,6 +429,8 @@ let make_shared_startup_file unix ~ppf_dump ~sourcefile_for_dwarf genfns units =
   let compile_phrase p = Asmgen.compile_phrase ~ppf_dump p in
   Location.input_name := "caml_startup";
   let shared_startup_comp_unit =
+    (* TODO Track down how this shared startup file gets used. *)
+    (* CU.create CU.Prefix.empty (CU.Name.of_string "caml_shared_startup") *)
     CU.create CU.Prefix.empty (CU.Name.of_string "_shared_startup")
   in
   let shared_startup_unit_info =
