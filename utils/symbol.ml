@@ -224,5 +224,5 @@ let for_new_const_in_current_unit () =
   incr const_label;
   for_name (Compilation_unit.get_current_exn ()) (Int.to_string !const_label)
 
-let is_predef_exn t =
-  CU.equal t.compilation_unit CU.predef_exn
+(* let is_predef_exn t = *)
+(*   CU.equal t.compilation_unit CU.predef_exn *)
