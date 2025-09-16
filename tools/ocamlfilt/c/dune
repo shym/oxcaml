@@ -1,0 +1,5 @@
+(library
+ (name ocamlfilt_demangle_c)
+ (foreign_stubs
+  (language c)
+  (names demangle)))

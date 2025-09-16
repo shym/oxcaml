@@ -1,0 +1,11 @@
+(executable
+ (name ocamlfilt)
+ (modes byte native)
+ (libraries ocamlfilt_ocaml ocamlfilt_demangle_c ocamlfilt_demangle_cxx))
+
+(install
+ (files
+  (ocamlfilt.bc as ocamlfilt.byte)
+  (ocamlfilt.exe as ocamlfilt.opt))
+ (section bin)
+ (package ocaml))

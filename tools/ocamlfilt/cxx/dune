@@ -1,0 +1,16 @@
+(library
+ (name ocamlfilt_demangle_cxx)
+ (foreign_stubs
+  (language cxx)
+  (names OxCamlDemangle demangle)))
+
+; Write to OxCamlDemangle.llvm.cpp the version of the sources to copy over to
+; the LLVM repository
+(rule
+ (mode promote)
+ (action
+  (with-stdout-to
+   OxCamlDemangle.llvm.cpp
+   (with-stdin-from
+    OxCamlDemangle.cpp
+    (run sed -e "/\\/\\/LLVM$/d" -e "s/^.*\\/\\/LLVM //")))))
