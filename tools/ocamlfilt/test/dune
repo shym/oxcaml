@@ -1,2 +1,15 @@
 (cram
  (deps %{bin:ocamlfilt.opt}))
+
+(test
+ (name consistency)
+ (libraries
+  ocamlfilt_ocaml
+  ocamlfilt_demangle_c
+  ocamlfilt_demangle_cxx
+  (select
+   consistency.ml
+   from
+   (base_quickcheck -> consistency.qc.ml)
+   (-> consistency.dummy.ml))))
+; FIXME: this is broken if base_quickcheck for OCaml 4.14 is in scope
