@@ -2198,7 +2198,8 @@ end = struct
 
   let is_caml_internal s =
     String.starts_with s ~prefix:"caml_apply"
-    || String.starts_with s ~prefix:"camlCamlinternal"
+    || String.starts_with s ~prefix:"_ON"
+       && String.begins_with s ~from:5 ~prefix:"Camlinternal"
 
   (* [find_callee] returns the value associated with the callee. *)
   let find_callee t callee ~desc dbg (k : Witness.kind) =
