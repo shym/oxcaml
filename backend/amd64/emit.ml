@@ -972,8 +972,10 @@ let emit_global_label_for_symbol ~section lbl =
   global_maybe_protected lbl;
   D.define_symbol_label ~section lbl
 
-let emit_global_label ~section s =
-  let lbl = Cmm_helpers.make_symbol s in
+let emit_global_label ?(c_linkage = false) ~section s =
+  let lbl =
+    if c_linkage then Cmm_helpers.make_c_symbol s else Cmm_helpers.make_symbol s
+  in
   emit_global_label_for_symbol ~section lbl
 
 let movd src dst =
@@ -3063,7 +3065,7 @@ let end_assembly () =
      with zeros or nops here. *)
   D.align ~fill_x86_bin_emitter:Zero ~bytes:8;
   (* PR#7591 *)
-  emit_global_label ~section:Text "frametable";
+  emit_global_label ~c_linkage:true ~section:Text "frametable";
   (* CR sspies: Share the [emit_frames] code with the Arm backend. *)
   emit_frames
     { efa_code_label =
@@ -3094,7 +3096,7 @@ let end_assembly () =
           D.define_label lbl);
       efa_string = (fun s -> D.string (s ^ "\000"))
     };
-  let frametable_sym = S.create (Cmm_helpers.make_symbol "frametable") in
+  let frametable_sym = S.create (Cmm_helpers.make_c_symbol "frametable") in
   D.size frametable_sym;
   D.data ();
   emit_probe_notes ();
