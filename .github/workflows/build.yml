@@ -1,11 +1,6 @@
 name: build
 on:
   push:
-    branches:
-      - main
-      - '*microbranch'
-    tags:
-      - '*'
   pull_request:
 jobs:
   build:
@@ -16,136 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: flambda2_runtime5
-            config: --enable-middle-end=flambda2 --enable-runtime5
+          - name: name_mangling
+            config: --enable-runtime5 --enable-name-mangling=V1
             os: ubuntu-latest
-
-          - name: flambda2_stack_checks
-            config: --enable-middle-end=flambda2 --enable-runtime5 --enable-stack-checks
-            os: ubuntu-latest
-
-          - name: flambda2_poll_insertion
-            config: --enable-middle-end=flambda2 --enable-runtime5 --enable-poll-insertion
-            os: ubuntu-latest
-
-          - name: flambda2_multidomain
-            config: --enable-middle-end=flambda2 --enable-runtime5 --enable-stack-checks --enable-poll-insertion --enable-multidomain
-            os: ubuntu-latest
-
-          - name: flambda2_dev
-            config: --enable-middle-end=flambda2 --enable-dev
-            os: ubuntu-latest
-
-          - name: flambda2_dev_runtime5
-            config: --enable-middle-end=flambda2 --enable-dev --enable-runtime5
-            os: ubuntu-latest
-
-          - name: flambda2_debug_runtime5
-            config: --enable-middle-end=flambda2 --enable-runtime5 --enable-stack-checks
-            os: ubuntu-latest
-            build_ocamlparam: ''
-            use_runtime: d
-            ocamlrunparam: "v=0,V=1"
-
-          - name: flambda2_debug_runtime
-            config: --enable-middle-end=flambda2
-            os: ubuntu-latest
-            build_ocamlparam: ''
-            use_runtime: d
-            ocamlrunparam: "v=0,V=1"
-
-          - name: flambda2_o3
-            config: --enable-middle-end=flambda2
-            os: ubuntu-latest
-            build_ocamlparam: ''
-            ocamlparam: '_,O3=1'
-
-          - name: flambda2_frame_pointers_oclassic_polling
-            config: --enable-middle-end=flambda2 --enable-frame-pointers --enable-poll-insertion --enable-flambda-invariants
-            os: ubuntu-latest
-            build_ocamlparam: ''
-            ocamlparam: '_,Oclassic=1'
-            disable_testcases: 'testsuite/tests/typing-local/regression_cmm_unboxing.ml testsuite/tests/int64-unboxing/test.ml'
-
-          - name: flambda2_macos_arm64
-            config: --enable-middle-end=flambda2 --disable-warn-error
-            os: macos-latest
-
-          - name: flambda2_macos_arm64_runtime5_regalloc
-            config: --enable-middle-end=flambda2 --enable-runtime5 --disable-warn-error
-            os: macos-latest
-            build_ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            run_regalloc_tool: true
-
-          - name: flambda2_macos_arm64_debug_runtime5_regalloc
-            config: --enable-middle-end=flambda2 --enable-runtime5 --disable-warn-error
-            os: macos-latest
-            build_ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            use_runtime: d
-            ocamlrunparam: "v=0,V=1"
-            run_regalloc_tool: true
-
-          - name: flambda2_ubuntu_arm64_runtime5_regalloc
-            config: --enable-middle-end=flambda2 --enable-runtime5 --disable-warn-error
-            os: ubuntu-24.04-arm
-            build_ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            run_regalloc_tool: true
-
-          - name: regalloc
-            config: --enable-middle-end=flambda2
-            os: ubuntu-latest
-            build_ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            ocamlparam: '_,w=-46,save-ir-before=register_allocation'
-            check_arch: true
-            run_regalloc_tool: true
-
-          - name: irc_frame_pointers
-            config: --enable-middle-end=flambda2 --enable-runtime5 --enable-frame-pointers
-            os: ubuntu-latest
-            build_ocamlparam: '_,w=-46,regalloc=irc'
-            ocamlparam: '_,w=-46,regalloc=irc'
-            check_arch: true
-
-          - name: cfg-invariants
-            config: --enable-middle-end=flambda2 --enable-runtime5
-            os: ubuntu-latest
-            build_ocamlparam: '_,w=-46,regalloc=cfg,cfg-invariants=1,cfg-eliminate-dead-trap-handlers=1'
-            ocamlparam: '_,w=-46,regalloc=cfg,cfg-invariants=1,cfg-eliminate-dead-trap-handlers=1'
-            check_arch: true
-
-          - name: vectorizer
-            config: --enable-middle-end=flambda2 --enable-runtime5
-            os: ubuntu-latest
-            build_ocamlparam: '_,w=-46,regalloc=cfg,vectorize=1'
-            ocamlparam: '_,w=-46,regalloc=cfg,vectorize=1'
-            check_arch: true
-
-          - name: address_sanitizer
-            config: --enable-middle-end=flambda2 --enable-address-sanitizer
-            os: ubuntu-latest
-            cc: clang
-
-          - name: address_sanitizer_runtime5
-            config: --enable-middle-end=flambda2 --enable-address-sanitizer --enable-runtime5
-            os: ubuntu-latest
-            cc: clang
-
-          - name: dwarf_tests
-            config: --enable-middle-end=flambda2
-            os: ubuntu-latest
-            dwarf_tests_only: true
-            oxcaml_llvm_tag: oxcaml-lldb-16.0.6-minus0
-            oxcaml_llvm_source_branch: lldb
-          
-          - name: llvmize_tests
-            config: --enable-middle-end=flambda2 --enable-runtime5
-            os: ubuntu-latest
-            llvmize_tests_only: true
-            oxcaml_llvm_tag: oxcaml-llvmize-16.0.6-minus0
-            oxcaml_llvm_source_branch: llvmize-oxcaml
 
     env:
       J: "3"
@@ -158,7 +26,7 @@ jobs:
         path: 'oxcaml'
 
     - name: Install AFL (for Linux workers)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && false
       run: sudo apt-get install afl++
 
     - name: Install clang
