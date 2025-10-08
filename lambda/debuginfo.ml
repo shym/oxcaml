@@ -20,6 +20,12 @@ open Location
 module ZA = Zero_alloc_utils
 
 module Scoped_location = struct
+  type mangling_item =
+  | Module of string
+  | AnonymousFunction of Location.t
+  | PartialFunction
+  | NamedFunction of string
+
   type scope_item =
     | Sc_anonymous_function
     | Sc_value_definition
@@ -45,7 +51,7 @@ module Scoped_location = struct
   type scopes =
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string; name : string; prev: scopes;
-               assume_zero_alloc: ZA.Assume_info.t}
+               assume_zero_alloc: ZA.Assume_info.t; mangling_item: mangling_item option}
 
   let str = function
     | Empty -> ""
@@ -55,9 +61,9 @@ module Scoped_location = struct
     | Empty -> "(fun)"
     | Cons r -> r.str_fun
 
-  let cons scopes item str name ~assume_zero_alloc =
+  let cons scopes item str name mangling_item ~assume_zero_alloc =
     Cons {item; str; str_fun = str ^ ".(fun)"; name; prev = scopes;
-          assume_zero_alloc}
+          assume_zero_alloc; mangling_item}
 
   let empty_scopes = Empty
 
@@ -78,26 +84,26 @@ module Scoped_location = struct
     | Empty -> s
     | Cons {str; _} -> str ^ sep ^ s
 
-  let enter_anonymous_function ~scopes ~assume_zero_alloc =
+  let enter_anonymous_function ~scopes ~assume_zero_alloc ~loc =
     let str = str_fun scopes in
     Cons {item = Sc_anonymous_function; str; str_fun = str; name = ""; prev = scopes;
-          assume_zero_alloc }
+          assume_zero_alloc; mangling_item = Some (AnonymousFunction loc) }
 
   let enter_value_definition ~scopes ~assume_zero_alloc id =
-    cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id)
+    cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id) (Some (NamedFunction (Ident.name id)))
       ~assume_zero_alloc
 
   let enter_compilation_unit ~scopes cu =
     let name = Compilation_unit.name_as_string cu in
-    cons scopes Sc_module_definition (dot scopes name) name
+    cons scopes Sc_module_definition (dot scopes name) name None
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_module_definition ~scopes id =
-    cons scopes Sc_module_definition (dot scopes (Ident.name id)) (Ident.name id)
+    cons scopes Sc_module_definition (dot scopes (Ident.name id)) (Ident.name id) (Some (Module (Ident.name id)))
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_class_definition ~scopes id =
-    cons scopes Sc_class_definition (dot scopes (Ident.name id)) (Ident.name id)
+    cons scopes Sc_class_definition (dot scopes (Ident.name id)) (Ident.name id) (Some (Module (Ident.name id)))
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_method_definition ~scopes (s : Asttypes.label) =
@@ -107,14 +113,14 @@ module Scoped_location = struct
       | _ -> dot scopes s
     in
     cons scopes Sc_method_definition str s
-      ~assume_zero_alloc:ZA.Assume_info.none
+      ~assume_zero_alloc:ZA.Assume_info.none (Some (NamedFunction str))
 
   let enter_lazy ~scopes = cons scopes Sc_lazy (str scopes) ""
-                             ~assume_zero_alloc:ZA.Assume_info.none
+                             ~assume_zero_alloc:ZA.Assume_info.none None
 
   let enter_partial_or_eta_wrapper ~scopes =
     cons scopes Sc_partial_or_eta_wrapper (dot ~no_parens:() scopes "(partial)") ""
-      ~assume_zero_alloc:ZA.Assume_info.none
+      ~assume_zero_alloc:ZA.Assume_info.none (Some PartialFunction)
 
   let update_assume_zero_alloc ~scopes ~assume_zero_alloc =
     match scopes with

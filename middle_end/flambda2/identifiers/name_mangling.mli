@@ -2,12 +2,12 @@ type path_item =
   | Module of string
   | AnonymousFunction of int * int * string option
   | NamedFunction of string
-  | AnonymousModule of int * int * string option
+  | PartialFunction
 
-(*
-  let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"]
- *)
+(* let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"] *)
 type path = path_item list
+
+val path_of_debug_info : Debuginfo.t -> path
 
 (** Transform a [path] into a mangled name suitable for creating a LinkageName.t *)
 val mangle_path : path -> string

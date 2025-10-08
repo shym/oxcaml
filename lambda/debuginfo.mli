@@ -16,6 +16,12 @@
 module ZA = Zero_alloc_utils
 
 module Scoped_location : sig
+  type mangling_item =
+  | Module of string
+  | AnonymousFunction of Location.t
+  | PartialFunction
+  | NamedFunction of string
+
   type scope_item = private
     | Sc_anonymous_function
     | Sc_value_definition
@@ -24,21 +30,32 @@ module Scoped_location : sig
     | Sc_method_definition
     | Sc_partial_or_eta_wrapper
     | Sc_lazy
+  (* Not all scope items actually show up in the mangling names, so we track
+     them as an option in scopes. *)
 
   val equal_scope_item : scope_item -> scope_item -> bool
 
   type scopes = private
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string; name : string; prev: scopes;
-               assume_zero_alloc: ZA.Assume_info.t}
+               assume_zero_alloc: ZA.Assume_info.t; mangling_item: mangling_item option}
 
   val string_of_scopes : include_zero_alloc:bool -> scopes -> string
 
   val compilation_unit : scopes -> Compilation_unit.t option
 
+  (* CR sspies: There should be something to enter an anonymous module, which
+  would improve the mangled names. For now, they are dropped in the mangled names. *)
+
   val empty_scopes : scopes
+  (* CR sspies: [enter_anonymous_function] doesn't seem to be used much. There is
+     instead separate logic for producing names for anonymous functions. Take a
+     closer look at that. *)
   val enter_anonymous_function :
-    scopes:scopes -> assume_zero_alloc:ZA.Assume_info.t -> scopes
+    scopes:scopes ->
+    assume_zero_alloc:ZA.Assume_info.t ->
+    loc:Location.t ->
+    scopes
   val enter_value_definition :
     scopes:scopes -> assume_zero_alloc:ZA.Assume_info.t -> Ident.t -> scopes
   val enter_compilation_unit : scopes:scopes -> Compilation_unit.t -> scopes
