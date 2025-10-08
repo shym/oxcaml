@@ -16,6 +16,11 @@
 
 [@@@ocaml.warning "+a-4-9-30-40-41-42"]
 
+(**
+   Linkage Name (Mangled Name): The raw symbol name as it appears in the object file's symbol table. This is the name
+   that the linker uses to resolve references between compilation units.
+ *)
+
 include Identifiable.S
 
 val of_string : string -> t
