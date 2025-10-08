@@ -3,6 +3,7 @@ type path_item =
   | AnonymousFunction of int * int * string option
   | NamedFunction of string
   | PartialFunction
+  | AnonymousModule of int * int * string option
 
 (* let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"] *)
 type path = path_item list
