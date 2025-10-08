@@ -146,6 +146,19 @@ let for_name compilation_unit name =
     linkage_name;
     hash = Hashtbl.hash linkage_name; }
 
+let for_runlength_encoded_name ~linkage_name_for_compilation_unit compilation_unit name =
+  let prefix =
+    linkage_name_for_compilation_unit |> Linkage_name.to_string
+  in
+  let linkage_name =
+    (* Note: Separator dropped here. *)
+    prefix ^ name |> Linkage_name.of_string
+  in
+  { compilation_unit;
+    linkage_name;
+    hash = Hashtbl.hash linkage_name; }
+
+
 let for_local_ident id =
   assert (not (Ident.is_global_or_predef id));
   let compilation_unit = CU.get_current_exn () in

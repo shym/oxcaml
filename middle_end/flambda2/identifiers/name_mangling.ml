@@ -29,7 +29,7 @@ let rec path_of_debug_info_scopes (scopes: Debuginfo.Scoped_location.scopes) =
 let path_of_debug_info dbg : path =
   match Debuginfo.to_items dbg with
   | [] -> Misc.fatal_error "path_of_debug_info: no debug info for function"
-  | [item] -> path_of_debug_info_scopes item.dinfo_scopes
+  | [item] -> path_of_debug_info_scopes item.dinfo_scopes |> List.rev
   | _ :: _ :: _ -> Misc.fatal_error "path_of_debug_info: multiple debug info items for function"
 
 
@@ -109,7 +109,7 @@ let mangle_path (path : path) : string =
 
 let mangle_path_with_prefix (path : path) : string =
   let b = Buffer.create 10 in
-  Buffer.add_string b "_O";
+  Buffer.add_string b "O";
   List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) path;
   Buffer.contents b
 
@@ -138,7 +138,7 @@ let mangle_comp_unit (cu : Compilation_unit.t) : string =
             Module (String.concat "" [instance_separator; extra_separators; value]))
           flattened_instance_args
       in
-      mangle_path ((Module name) :: arg_segments)
+      mangle_path_with_prefix ((Module name) :: arg_segments)
     end
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =

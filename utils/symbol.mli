@@ -33,6 +33,11 @@ val unsafe_create : Compilation_unit.t -> Linkage_name.t -> t
 (** Create symbol for [Compilation_unit.t] with name. *)
 val for_name : Compilation_unit.t -> string -> t
 
+
+val for_runlength_encoded_name :
+    linkage_name_for_compilation_unit: Linkage_name.t ->
+    Compilation_unit.t -> string -> t
+
 (** Create symbol for [Compilation_unit.t] with name.
 
     Resulting symbol is used as a building block when referring to this
