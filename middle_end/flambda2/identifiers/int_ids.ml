@@ -849,7 +849,7 @@ module Code_id = struct
         (* CR sspies: Add support for the shortened version. *)
         let suffix = Printf.sprintf "_%d_code" name_stamp in
         let linkage_name_for_compilation_unit = Name_mangling.mangle_comp_unit compilation_unit |> Linkage_name.of_string in
-        let module_path = Name_mangling.path_of_debug_info debug in
+        let module_path = Name_mangling.path_of_debug_info name debug in
         let name = Name_mangling.mangle_path module_path in
         let name = name ^ suffix in
         Symbol0.for_runlength_encoded_name ~linkage_name_for_compilation_unit compilation_unit name

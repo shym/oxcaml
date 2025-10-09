@@ -8,7 +8,7 @@ type path_item =
 (* let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"] *)
 type path = path_item list
 
-val path_of_debug_info : Debuginfo.t -> path
+val path_of_debug_info : string -> Debuginfo.t -> path
 
 (** Transform a [path] into a mangled name suitable for creating a LinkageName.t *)
 val mangle_path : path -> string

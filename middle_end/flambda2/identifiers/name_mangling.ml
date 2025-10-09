@@ -26,12 +26,12 @@ let rec path_of_debug_info_scopes (scopes: Debuginfo.Scoped_location.scopes) =
   | Cons { item = _; name = _; str = _; str_fun = _; assume_zero_alloc = _; prev; mangling_item = Some mangling_item} ->
       debug_info_scope_mangling_item_to_path_item mangling_item :: (path_of_debug_info_scopes prev)
 
-let path_of_debug_info dbg : path =
+let path_of_debug_info name dbg : path =
   match Debuginfo.to_items dbg with
-  | [] -> Misc.fatal_error "path_of_debug_info: no debug info for function"
-  | [item] -> path_of_debug_info_scopes item.dinfo_scopes |> List.rev
-  | _ :: _ :: _ -> Misc.fatal_error "path_of_debug_info: multiple debug info items for function"
-
+  | [] -> [NamedFunction name]
+  | item :: _ -> path_of_debug_info_scopes item.dinfo_scopes |> List.rev
+  (* CR spies: This should be looked at again.
+     How can we have multiple debug entries here? *)
 
 let is_out_char = function
    | '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z' | '_' -> true
@@ -100,7 +100,8 @@ let is_out_char = function
       let file_name = Option.value ~default:"" file_opt in
       let ts = Printf.sprintf "%s_%d_%d" file_name line col  in
       Printf.sprintf "%d%s" (String.length ts) ts
-    | PartialFunction -> (* CR sspies: Implement. *) assert false
+   | PartialFunction ->
+      (* CR sspies: Implement. *) "partial"
 
 let mangle_path (path : path) : string =
   let b = Buffer.create 10 in
