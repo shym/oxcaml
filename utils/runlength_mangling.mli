@@ -27,18 +27,14 @@
  * DEALINGS IN THE SOFTWARE.                                                  *
  ******************************************************************************)
 
-type path_item = private
+type path_item =
   | Module of string
   | AnonymousFunction of int * int * string option
   | NamedFunction of string
   | PartialFunction
   | AnonymousModule of int * int * string option
 
-type path
-
-(** [path_of_debug_info] converts the debug info into a mangling path. If the
-    debug info is empty, the fallback name is used to populate the path. *)
-val path_of_debug_info : fallback_name:string -> Debuginfo.t -> path
+type path = path_item list
 
 (** Transform a [path] into a mangled name suitable for creating a LinkageName.t *)
 val mangle_path : path -> string

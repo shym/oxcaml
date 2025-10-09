@@ -854,7 +854,7 @@ module Code_id = struct
         (* CR sspies: Note that the fallback name still contains the additional
            stamp. *)
         let path =
-          Runlength_mangling.path_of_debug_info ~fallback_name:name debug
+          Debuginfo.to_runlength_mangling_path ~fallback_name:name debug
         in
         Symbol0.for_runlength_encoding_path ~compilation_unit ~path ~suffix
         |> Symbol0.linkage_name

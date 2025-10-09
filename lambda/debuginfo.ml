@@ -20,12 +20,6 @@ open Location
 module ZA = Zero_alloc_utils
 
 module Scoped_location = struct
-  type mangling_item =
-  | Module of string
-  | AnonymousFunction of Location.t
-  | PartialFunction
-  | NamedFunction of string
-
   type scope_item =
     | Sc_anonymous_function
     | Sc_value_definition
@@ -51,7 +45,7 @@ module Scoped_location = struct
   type scopes =
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string; name : string; prev: scopes;
-               assume_zero_alloc: ZA.Assume_info.t; mangling_item: mangling_item option}
+               assume_zero_alloc: ZA.Assume_info.t; mangling_item: Runlength_mangling.path_item option}
 
   let str = function
     | Empty -> ""
@@ -86,8 +80,9 @@ module Scoped_location = struct
 
   let enter_anonymous_function ~scopes ~assume_zero_alloc ~loc =
     let str = str_fun scopes in
+    let file, line, col = loc.loc_start.pos_fname, loc.loc_start.pos_lnum, loc.loc_start.pos_cnum in
     Cons {item = Sc_anonymous_function; str; str_fun = str; name = ""; prev = scopes;
-          assume_zero_alloc; mangling_item = Some (AnonymousFunction loc) }
+          assume_zero_alloc; mangling_item = Some (AnonymousFunction (line, col, Some file)) }
 
   let enter_value_definition ~scopes ~assume_zero_alloc id =
     cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id) (Some (NamedFunction (Ident.name id)))
@@ -428,3 +423,17 @@ let assume_zero_alloc t = t.assume_zero_alloc
 
 let get_dbg t = t.dbg
 
+let rec path_of_debug_info_scopes (scopes: Scoped_location.scopes) =
+  match scopes with
+  | Empty -> []
+  | Cons { item = _; name = _; str = _; str_fun = _; assume_zero_alloc = _; prev; mangling_item = None} ->
+      path_of_debug_info_scopes prev
+  | Cons { item = _; name = _; str = _; str_fun = _; assume_zero_alloc = _; prev; mangling_item = Some mangling_item} ->
+      mangling_item :: (path_of_debug_info_scopes prev)
+
+let to_runlength_mangling_path ~fallback_name dbg : Runlength_mangling.path =
+  match to_items dbg with
+  | [] -> [NamedFunction fallback_name]
+  | item :: _ -> path_of_debug_info_scopes item.dinfo_scopes |> List.rev
+  (* CR spies: This should be looked at again.
+    How can we have multiple debug entries here? *)
