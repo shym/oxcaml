@@ -846,8 +846,11 @@ module Code_id = struct
         in
         Symbol0.for_name compilation_unit name |> Symbol0.linkage_name
       | Config.RunLengthEncoding ->
-        (* CR sspies: Add support for the shortened version. *)
-        let suffix = Printf.sprintf "_%d_code" name_stamp in
+        let suffix =
+          if Flambda_features.Expert.shorten_symbol_names ()
+          then Printf.sprintf "_%d" name_stamp
+          else Printf.sprintf "_%d_code" name_stamp
+        in
         (* CR sspies: Note that the fallback name still contains the additional
            stamp. *)
         let path =
