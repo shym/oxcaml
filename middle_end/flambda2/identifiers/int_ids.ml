@@ -852,7 +852,8 @@ module Code_id = struct
           Runlength_mangling.mangle_comp_unit compilation_unit
           |> Linkage_name.of_string
         in
-        let module_path = Runlength_mangling.path_of_debug_info name debug in
+        (* CR sspies: Note that the fallback name still contains the additional stamp. *)
+        let module_path = Runlength_mangling.path_of_debug_info ~fallback_name:name debug in
         let name = Runlength_mangling.mangle_path module_path in
         let name = name ^ suffix in
         Symbol0.for_runlength_encoded_name ~linkage_name_for_compilation_unit

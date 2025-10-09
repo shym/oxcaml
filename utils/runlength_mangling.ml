@@ -33,7 +33,7 @@ type path_item =
   | NamedFunction of string
   | PartialFunction
   | AnonymousModule of int * int * string option
-
+[@@ocaml.warning "-37"]
 (*
   let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"]
  *)
@@ -55,9 +55,9 @@ let rec path_of_debug_info_scopes (scopes: Debuginfo.Scoped_location.scopes) =
   | Cons { item = _; name = _; str = _; str_fun = _; assume_zero_alloc = _; prev; mangling_item = Some mangling_item} ->
       debug_info_scope_mangling_item_to_path_item mangling_item :: (path_of_debug_info_scopes prev)
 
-let path_of_debug_info name dbg : path =
+let path_of_debug_info ~fallback_name dbg : path =
   match Debuginfo.to_items dbg with
-  | [] -> [NamedFunction name]
+  | [] -> [NamedFunction fallback_name]
   | item :: _ -> path_of_debug_info_scopes item.dinfo_scopes |> List.rev
   (* CR spies: This should be looked at again.
      How can we have multiple debug entries here? *)
