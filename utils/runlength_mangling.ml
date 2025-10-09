@@ -28,11 +28,11 @@
  ******************************************************************************)
 
 type path_item =
-  | Module of string
-  | AnonymousFunction of int * int * string option
-  | NamedFunction of string
-  | PartialFunction
-  | AnonymousModule of int * int * string option
+  | Module of string           (* M *)
+  | AnonymousFunction of int * int * string option (* L *)
+  | NamedFunction of string                        (* F *)
+  | PartialFunction                                (* P *)
+  | AnonymousModule of int * int * string option   (* S *)
 (*
   let n = [Module "Foo"; Module "Bar"; NamedFunction "baz"]
  *)
@@ -86,27 +86,28 @@ let is_out_char = function
    in
    aux 0 Raw
 
+ let escape_unicode sym =
+   if String.for_all is_out_char sym then ("", sym) else ("u", encode sym)
+
+ let run_length_encode sym =
+   let pref, rsym = escape_unicode sym in
+   Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
+
  let mangle_chunk = function
    | Module sym ->
-      let pref, rsym =
-        if String.for_all is_out_char sym then ("", sym) else ("u", encode sym)
-      in
-      Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
+      "M" ^ run_length_encode sym
    | NamedFunction sym ->
-      let pref, rsym =
-        if String.for_all is_out_char sym then ("", sym) else ("u", encode sym)
-      in
-      Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
+      "F" ^ run_length_encode sym
    | AnonymousFunction (line, col, file_opt) ->
       let file_name = Option.value ~default:"" file_opt in
-      let ts = Printf.sprintf "%s_%d_%d" file_name line col  in
-      Printf.sprintf "%d%s" (String.length ts) ts
+      let ts = Printf.sprintf "%s_%d_%d" file_name line col in
+      "L" ^ run_length_encode ts
    | AnonymousModule (line, col, file_opt) ->
       let file_name = Option.value ~default:"" file_opt in
-      let ts = Printf.sprintf "%s_%d_%d" file_name line col  in
-      Printf.sprintf "%d%s" (String.length ts) ts
+      let ts = Printf.sprintf "%s_%d_%d" file_name line col in
+      "S" ^ run_length_encode ts
    | PartialFunction ->
-      (* CR sspies: Implement. *) "partial"
+      "P"
 
 let mangle_path (path : path) : string =
   let b = Buffer.create 10 in
