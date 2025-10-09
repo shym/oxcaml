@@ -4078,6 +4078,9 @@ let make_symbol ?compilation_unit name =
     | None -> Compilation_unit.get_current_exn ()
     | Some compilation_unit -> compilation_unit
   in
+  (* CR sspies: Changing the mangling here leads to trouble with hardcoded names
+  in the assembly code for frame tables. These names need to be updated as well.
+  *)
   Symbol.for_name compilation_unit name
   |> Symbol.linkage_name |> Linkage_name.to_string
 
