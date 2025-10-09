@@ -838,14 +838,14 @@ module Code_id = struct
          backend/debug/dwarf/dwarf_ocaml/dwarf_concrete_instances.ml:30 for how
          the debug names are currently being generated. *)
       match Config.name_mangling_version with
-      | "V0" ->
+      | Config.LegacyOCaml ->
         let name =
           if Flambda_features.Expert.shorten_symbol_names ()
           then Printf.sprintf "%s_%d" name name_stamp
           else Printf.sprintf "%s_%d_code" name name_stamp
         in
         Symbol0.for_name compilation_unit name |> Symbol0.linkage_name
-      | "V1" ->
+      | Config.RunLengthEncoding ->
         (* CR sspies: Add support for the shortened version. *)
         let suffix = Printf.sprintf "_%d_code" name_stamp in
         let linkage_name_for_compilation_unit = Name_mangling.mangle_comp_unit compilation_unit |> Linkage_name.of_string in
@@ -854,8 +854,6 @@ module Code_id = struct
         let name = name ^ suffix in
         Symbol0.for_runlength_encoded_name ~linkage_name_for_compilation_unit compilation_unit name
         |> Symbol0.linkage_name
-      | _ -> Misc.fatal_error "This error should not be raised here."
-        (* CR sspies: Add proper version handling instead of dealing with strings. *)
     in
     let data : Code_id_data.t =
       { compilation_unit; name; debug_info = debug; linkage_name }
