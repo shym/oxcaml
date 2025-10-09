@@ -145,6 +145,7 @@
   lambda
   runtimedef
   runtimetags
+  runlength_mangling
   instruct
   opcodes
   bytesections
@@ -186,6 +187,8 @@
 ;; .ml:
 
 (copy_files ../../utils/runtimetags.ml)
+
+(copy_files ../../utils/runlength_mangling.ml)
 
 (copy_files ../../utils/binutils.ml)
 
@@ -348,6 +351,8 @@
 ;; .mli:
 
 (copy_files ../../utils/runtimetags.mli)
+
+(copy_files ../../utils/runlength_mangling.mli)
 
 (copy_files ../../utils/binutils.mli)
 
