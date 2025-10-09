@@ -115,7 +115,7 @@ let mangle_path (path : path) : string =
 
 let mangle_path_with_prefix (path : path) : string =
   let b = Buffer.create 10 in
-  Buffer.add_string b "O";
+  Buffer.add_string b "_O";
   List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) path;
   Buffer.contents b
 
