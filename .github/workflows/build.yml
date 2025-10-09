@@ -33,7 +33,7 @@ jobs:
             os: ubuntu-latest
 
           - name: flambda2_dev
-            config: --enable-middle-end=flambda2 --enable-dev
+            config: --enable-middle-end=flambda2 --enable-dev --enable-name-mangling=RunLengthEncoding
             os: ubuntu-latest
 
           - name: flambda2_dev_runtime5
