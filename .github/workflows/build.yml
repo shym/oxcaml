@@ -143,8 +143,8 @@ jobs:
             config: --enable-middle-end=flambda2 --enable-runtime5 --enable-name-mangling=RunLengthEncoding
             os: ubuntu-latest
             dwarf_tests_only: true
-            oxcaml_llvm_tag: oxcaml-lldb-16.0.6-minus1
-            oxcaml_llvm_source_branch: lldb
+            oxcaml_llvm_tag: oxcaml-name-mangling-experiments-16.0.6-minus0
+            oxcaml_llvm_source_branch: name-mangling-experiments
 
           - name: llvmize_tests
             config: --enable-middle-end=flambda2 --enable-runtime5 --enable-frame-pointers --enable-name-mangling=RunLengthEncoding
