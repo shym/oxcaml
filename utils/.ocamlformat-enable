@@ -16,5 +16,5 @@ arrayset.ml
 arrayset.mli
 priority_queue.ml
 priority_queue.mli
-runlength_encoding.ml
-runlength_encoding.mli
+runlength_mangling.ml
+runlength_mangling.mli

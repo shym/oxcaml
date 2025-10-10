@@ -30,9 +30,7 @@ val for_local_ident : Ident.t -> t
     by this module. *)
 val unsafe_create : Compilation_unit.t -> Linkage_name.t -> t
 
-(** Create symbol for [Compilation_unit.t] with name. *)
 val for_name : Compilation_unit.t -> string -> t
-
 
 val for_runlength_encoding_path :
     compilation_unit:Compilation_unit.t ->
@@ -40,33 +38,14 @@ val for_runlength_encoding_path :
     suffix:string ->
     t
 
-(** Create symbol for [Compilation_unit.t] with name.
-
-    Resulting symbol is used as a building block when referring to this
-    Compilation Unit.
- *)
 val for_compilation_unit : Compilation_unit.t -> t
 
-(** Create symbol for [Compilation_unit.t] in [t] with name.
-
-    Typically immediately transformed to a linkage_name.
- *)
 val for_current_unit : unit -> t
 
-(** Create symbol for [Compilation_unit.t] in [t] with name.
-
-    Typically immediately transformed to a linkage_name.
- *)
 val for_new_const_in_current_unit : unit -> t
 
-(** Returns the [Compilation_unit.t] associated with this symbol [t].  *)
 val compilation_unit : t -> Compilation_unit.t
 
-(** Generate the [Linkage_name.t] for this symbol.
-
-    Linkage names are the raw symbol names in an object file's symbol table,
-    they should already be mangled.
- *)
 val linkage_name : t -> Linkage_name.t
 
 (** Linkage names displayed in ocamlobjinfo are formatted differently. *)

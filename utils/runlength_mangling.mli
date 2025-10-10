@@ -36,7 +36,8 @@ type path_item =
 
 type path = path_item list
 
-(** Transform a [path] into a mangled name suitable for creating a LinkageName.t *)
+(** Transform a [path] into a mangled name suitable for creating a
+    LinkageName.t *)
 val mangle_path : path -> string
 
 val mangle_comp_unit : Compilation_unit.t -> string
