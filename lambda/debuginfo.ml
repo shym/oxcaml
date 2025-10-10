@@ -81,9 +81,9 @@ module Scoped_location = struct
 
   let enter_anonymous_function ~scopes ~assume_zero_alloc ~loc =
     let str = str_fun scopes in
-    let {pos_fname; pos_lnum; pos_cnum; _} = loc.loc_start in
+    let (file, line, col) = Location.get_pos_info loc.loc_start in
     let mangling_item : Runlength_mangling.path_item option =
-      Some (AnonymousFunction (pos_lnum, pos_cnum, Some pos_fname))
+      Some (AnonymousFunction (line, col, Some file))
     in
     (* CR sspies: The column numbers here are off. Look into that. *)
     Cons {item = Sc_anonymous_function; str; str_fun = str; name = ""; prev = scopes;
