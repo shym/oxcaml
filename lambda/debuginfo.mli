@@ -32,19 +32,17 @@ module Scoped_location : sig
   type scopes = private
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string; name : string; prev: scopes;
-               assume_zero_alloc: ZA.Assume_info.t; mangling_item: Runlength_mangling.path_item option}
+               assume_zero_alloc: ZA.Assume_info.t;
+               mangling_item: Runlength_mangling.path_item option}
 
   val string_of_scopes : include_zero_alloc:bool -> scopes -> string
 
   val compilation_unit : scopes -> Compilation_unit.t option
 
   (* CR sspies: There should be something to enter an anonymous module, which
-  would improve the mangled names. For now, they are dropped in the mangled names. *)
+  would improve the demangled names. For now, they are dropped. *)
 
   val empty_scopes : scopes
-  (* CR sspies: [enter_anonymous_function] doesn't seem to be used much. There is
-     instead separate logic for producing names for anonymous functions. Take a
-     closer look at that. *)
   val enter_anonymous_function :
     scopes:scopes ->
     assume_zero_alloc:ZA.Assume_info.t ->
