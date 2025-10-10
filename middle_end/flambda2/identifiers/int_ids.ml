@@ -833,10 +833,6 @@ module Code_id = struct
       !previous_name_stamp
     in
     let linkage_name =
-      (* CR sspies: Apply the new algorithm here, and update Symbol0.for_name
-         accordingly. See
-         backend/debug/dwarf/dwarf_ocaml/dwarf_concrete_instances.ml:30 for how
-         the debug names are currently being generated. *)
       match Config.name_mangling_version with
       | Config.LegacyOCaml ->
         let name =
