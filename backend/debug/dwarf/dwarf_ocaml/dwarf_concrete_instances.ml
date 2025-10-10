@@ -26,7 +26,7 @@ let for_fundecl ~get_file_id state (fundecl : L.fundecl) ~fun_end_label
   let parent = Dwarf_state.compilation_unit_proto_die state in
   let fun_name = fundecl.fun_name in
   let loc = Debuginfo.to_location fundecl.fun_dbg in
-  let linkage_name =
+  let linkage_name_from_debug () =
     match Debuginfo.Dbg.to_list (Debuginfo.get_dbg fundecl.fun_dbg) with
     | [item] ->
       Debuginfo.Scoped_location.string_of_scopes ~include_zero_alloc:false
@@ -34,6 +34,13 @@ let for_fundecl ~get_file_id state (fundecl : L.fundecl) ~fun_end_label
       |> Misc.remove_double_underscores
     (* XXX Not sure what to do in the cases below *)
     | [] | _ :: _ -> fun_name
+  in
+  let linkage_name = match Config.name_mangling_version with
+  | LegacyOCaml -> Some (linkage_name_from_debug ())
+  | RunLengthEncoding -> None
+  (* When the runlength encoding is used, there is no need for additional
+     linkage names on non-inlined functions, because the module path can be
+     reconstructed from the assembly symbol name. *)
   in
   let start_sym = Asm_symbol.create fun_name in
   let location_attributes =
