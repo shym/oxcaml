@@ -49,7 +49,7 @@ let name_for_function (func : Lambda.lfunction) =
   (* Name anonymous functions by their source location, if known. Not necessary
      for the runlength encoding, because it uses the debug info to generate more
      informative names. *)
-  let use_runlength_mangling =
+  let mangling_scheme_locates_anonymous_functions =
     match Config.name_mangling_version with
     | LegacyOCaml -> false
     | RunLengthEncoding -> true
@@ -57,7 +57,8 @@ let name_for_function (func : Lambda.lfunction) =
   match func.loc with
   | Loc_unknown -> "fn"
   | Loc_known { loc; _ } ->
-    if Flambda_features.Expert.shorten_symbol_names () || use_runlength_mangling
+    if Flambda_features.Expert.shorten_symbol_names ()
+       || mangling_scheme_locates_anonymous_functions
     then "fn"
     else Format.asprintf "fn[%a]" print_compact_location loc
 
