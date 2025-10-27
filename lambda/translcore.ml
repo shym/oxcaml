@@ -1036,7 +1036,8 @@ and transl_exp0 ~in_new_scope ~scopes sort e =
              modifs
              (Lvar cpy))
   | Texp_letmodule(None, loc, Mp_present, modl, body) ->
-      let lam = !transl_module ~scopes Tcoerce_none None modl in
+      let mod_scopes = enter_anonymous_module ~scopes ~loc:loc.loc in
+      let lam = !transl_module ~scopes:mod_scopes Tcoerce_none None modl in
       Lsequence(Lprim(Pignore, [lam], of_location ~scopes loc.loc),
                 transl_exp ~scopes sort body)
   | Texp_letmodule(Some id, _loc, Mp_present, modl, body) ->

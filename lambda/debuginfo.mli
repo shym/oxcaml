@@ -39,13 +39,14 @@ module Scoped_location : sig
 
   val compilation_unit : scopes -> Compilation_unit.t option
 
-  (* CR sspies: There should be something to enter an anonymous module, which
-  would improve the demangled names. For now, they are dropped. *)
-
   val empty_scopes : scopes
   val enter_anonymous_function :
     scopes:scopes ->
     assume_zero_alloc:ZA.Assume_info.t ->
+    loc:Location.t ->
+    scopes
+  val enter_anonymous_module :
+    scopes:scopes ->
     loc:Location.t ->
     scopes
   val enter_value_definition :

@@ -89,6 +89,17 @@ module Scoped_location = struct
     Cons {item = Sc_anonymous_function; str; str_fun = str; name = ""; prev = scopes;
           assume_zero_alloc; mangling_item }
 
+  let enter_anonymous_module ~scopes ~loc =
+    let str = str scopes in
+    let (file, line, col) = Location.get_pos_info loc.loc_start in
+    let mangling_item : Runlength_mangling.path_item option =
+      Some (AnonymousModule (line, col, Some file))
+    in
+    (* CR tmcgilchrist: Consider only including file name, currently we get
+       full relative paths in symbols. *)
+    Cons {item = Sc_module_definition; str; str_fun = str ^ ".(fun)"; name = "";
+          prev = scopes; assume_zero_alloc = ZA.Assume_info.none; mangling_item }
+
   let enter_value_definition ~scopes ~assume_zero_alloc id =
     cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id)
       (Some (NamedFunction (Ident.name id)))

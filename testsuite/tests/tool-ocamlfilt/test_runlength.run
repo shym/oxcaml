@@ -49,6 +49,14 @@ echo "=== Complex Nested Anonymous Functions ==="
   __OM11Stdlib__SeqF11map_productLu19D2e_seqml_675_16613Lu19D2e_seqml_676_16635_236_code \
   __OM11Stdlib__SeqF11map_productLu19D2e_seqml_675_16613_136_code
 
+# Anonymous modules with location info
+echo ""
+echo "=== Anonymous Modules ==="
+"${ocamlsrcdir}/tools/ocamlfilt" -format run-length \
+  __OM23Test_anon_modules_dwarfF30test_anon_module_with_functionSu77G2fF2fH2fM2fX2e_oxcamltestsbackendoxcaml_dwarftest_anon_modules_dwarfml_14_13F10inner_func_13_code \
+  __OM23Test_anon_modules_dwarfF23test_nested_anon_moduleSu77G2fF2fH2fM2fX2e_oxcamltestsbackendoxcaml_dwarftest_anon_modules_dwarfml_37_13F10outer_func_18_code \
+  __OM23Test_anon_modules_dwarfF23test_nested_anon_moduleSu77G2fF2fH2fM2fX2e_oxcamltestsbackendoxcaml_dwarftest_anon_modules_dwarfml_37_13F10outer_funcSu77G2fF2fH2fM2fX2e_oxcamltestsbackendoxcaml_dwarftest_anon_modules_dwarfml_39_17F10inner_func_19_code
+
 # Basic test cases (original)
 echo ""
 echo "=== Basic Test Cases ==="
