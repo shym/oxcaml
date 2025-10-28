@@ -13,6 +13,7 @@ let _ = test_anon_module ()
 let[@inline never] [@local never] test_anon_module_with_function () =
   let module _ = struct
     let[@inline never] [@local never] inner_func x = x + 1
+
     let _ = inner_func 5
   end in
   print_endline "anonymous module with function"
@@ -27,6 +28,7 @@ let[@inline never] [@local never] test_named_vs_anon () =
   (* Anonymous module with function *)
   let module _ = struct
     let[@inline never] [@local never] anon_func x = x + 1
+
     let _ = anon_func 10
   end in
   Named.named_func 5
@@ -38,9 +40,11 @@ let[@inline never] [@local never] test_nested_anon_module () =
     let[@inline never] [@local never] outer_func () =
       let module _ = struct
         let[@inline never] [@local never] inner_func y = y + 10
+
         let _ = inner_func 5
       end in
       42
+
     let () = ignore (outer_func ())
   end in
   print_endline "nested anonymous module"

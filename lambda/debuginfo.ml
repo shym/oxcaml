@@ -98,7 +98,8 @@ module Scoped_location = struct
     (* CR tmcgilchrist: Consider only including file name, currently we get
        full relative paths in symbols. *)
     Cons {item = Sc_module_definition; str; str_fun = str ^ ".(fun)"; name = "";
-          prev = scopes; assume_zero_alloc = ZA.Assume_info.none; mangling_item }
+          prev = scopes; assume_zero_alloc = ZA.Assume_info.none;
+          mangling_item }
 
   let enter_value_definition ~scopes ~assume_zero_alloc id =
     cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id)

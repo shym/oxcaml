@@ -135,7 +135,8 @@ module RunLength = struct
         pos := !pos + len;
         Some id)
 
-  (* Format anonymous location from filename_line_col to fn(filename:line:col) *)
+  (* Format anonymous location from filename_line_col
+     to fn(filename:line:col) *)
   let format_anonymous_location loc =
     (* Find last two underscores *)
     let len = String.length loc in
@@ -167,7 +168,8 @@ module RunLength = struct
     in
     (* Skip platform-specific prefix (_ or __) *)
     let start_pos =
-      if String.length sym >= 3 && sym.[0] = '_' && sym.[1] = '_' && sym.[2] = 'O'
+      if String.length sym >= 3 && sym.[0] = '_' && sym.[1] = '_'
+         && sym.[2] = 'O'
       then 3
       else if String.length sym >= 2 && sym.[0] = '_' && sym.[1] = 'O'
       then 2
