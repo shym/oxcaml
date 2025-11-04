@@ -9,7 +9,7 @@
    - M: Module
    - F: NamedFunction
    - L: AnonymousFunction (formatted as fn(file:line:col))
-   - S: AnonymousModule (formatted as fn(file:line:col))
+   - S: AnonymousModule (formatted as mod(file:line:col))
    - P: PartialFunction
    - u prefix: Unicode encoding
 *)

@@ -136,8 +136,8 @@ module RunLength = struct
         Some id)
 
   (* Format anonymous location from filename_line_col
-     to fn(filename:line:col) *)
-  let format_anonymous_location loc =
+     to prefix(filename:line:col) *)
+  let format_anonymous_location prefix loc =
     (* Find last two underscores *)
     let len = String.length loc in
     let rec find_underscores i count first second =
@@ -157,7 +157,7 @@ module RunLength = struct
       let filename = String.sub loc 0 first in
       let line = String.sub loc (first + 1) (second - first - 1) in
       let col = String.sub loc (second + 1) (len - second - 1) in
-      Printf.sprintf "fn(%s:%s:%s)" filename line col)
+      Printf.sprintf "%s(%s:%s:%s)" prefix filename line col)
     else loc
 
   (* Unmangle runlength-encoded symbol *)
@@ -188,11 +188,17 @@ module RunLength = struct
         (match decode_identifier sym pos with
          | Some id -> Buffer.add_string result id
          | None -> err ())
-      | 'L' | 'S' ->
-        (* AnonymousFunction or AnonymousModule *)
+      | 'L' ->
+        (* AnonymousFunction *)
         if Buffer.length result > 0 then Buffer.add_char result '.';
         (match decode_identifier sym pos with
-         | Some loc -> Buffer.add_string result (format_anonymous_location loc)
+         | Some loc -> Buffer.add_string result (format_anonymous_location "fn" loc)
+         | None -> err ())
+      | 'S' ->
+        (* AnonymousModule *)
+        if Buffer.length result > 0 then Buffer.add_char result '.';
+        (match decode_identifier sym pos with
+         | Some loc -> Buffer.add_string result (format_anonymous_location "mod" loc)
          | None -> err ())
       | 'P' ->
         (* PartialFunction - no dot separator *)
