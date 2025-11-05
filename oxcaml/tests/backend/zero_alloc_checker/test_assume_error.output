@@ -41,6 +41,9 @@ stdlib/printf.ml:27,2--63[Stdlib.Printf.kfprintf][_OM14Stdlib.PrintfF8kfprintf_H
 stdlib/printf.ml:34,21--43[Stdlib.Printf.fprintf][_OM14Stdlib.PrintfF7fprintf_HIDE_STAMP]
 stdlib/printf.ml:38,17--35[Stdlib.Printf.printf][_OM14Stdlib.PrintfF6printf_HIDE_STAMP]
 test_assume_error.ml:61,6--30[Test_assume_error.A2.foo]
+Hint: Build artifacts for the library containing the callee are not available.
+Try adding the library as an explicit dependency.
+
 
 File "test_assume_error.ml", line 63, characters 6-10:
 Error: allocation of 24 bytes

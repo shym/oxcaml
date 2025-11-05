@@ -46,6 +46,9 @@ inlined from
 stdlib/printf.ml:46,2--31[Stdlib.Printf.ksprintf][_OM14Stdlib.PrintfF8ksprintf_HIDE_STAMP]
 stdlib/printf.ml:48,18--43[Stdlib.Printf.sprintf][_OM14Stdlib.PrintfF7sprintf_HIDE_STAMP]
 test_inference.ml:70,12--35[Test_inference.f_strict_fail]
+Hint: Build artifacts for the library containing the callee are not available.
+Try adding the library as an explicit dependency.
+
 
 File "test_inference.ml", line 71, characters 10-15:
 Error: allocation of 24 bytes on a path to exceptional return
