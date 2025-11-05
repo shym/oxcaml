@@ -5,7 +5,7 @@ let () =
     (* Disable tests when RunLengthEncoding name mangling is enabled, since
        symbol names differ. The OXCAML_NAME_MANGLING environment variable is set
        by the Makefile based on configure. *)
-    {|(enabled_if (and (= %{context_name} "main") (and (= %{architecture} "amd64") (= %{env:OXCAML_NAME_MANGLING=LegacyOCaml} "LegacyOCaml"))) )|}
+    {|(enabled_if (and (= %{context_name} "main") (= %{architecture} "amd64") (= %{env:OXCAML_NAME_MANGLING=LegacyOCaml} "LegacyOCaml")) )|}
   in
   let buf = Buffer.create 1000 in
   let print_test ?(extra_flags = "-zero-alloc-check default") deps =
