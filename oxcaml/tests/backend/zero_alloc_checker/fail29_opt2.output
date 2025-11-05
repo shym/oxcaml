@@ -37,6 +37,9 @@ inlined from
 stdlib/printf.ml:46,2--31[Stdlib.Printf.ksprintf][_OM14Stdlib.PrintfF8ksprintf_HIDE_STAMP]
 stdlib/printf.ml:48,18--43[Stdlib.Printf.sprintf][_OM14Stdlib.PrintfF7sprintf_HIDE_STAMP]
 fail29_opt2.ml:17,38--76[Fail29_opt2.check_me_strict]
+Hint: Build artifacts for the library containing the callee are not available.
+Try adding the library as an explicit dependency.
+
 
 File "fail29_opt2.ml", line 17, characters 29-77:
 Error: allocation of 24 bytes on a path to exceptional return
