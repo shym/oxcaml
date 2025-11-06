@@ -87,7 +87,7 @@ L142:
   %66 = icmp eq i64 %65, 0
   br i1 %66, label %L143, label %L106
 L143:
-  store ptr blockaddress(@_OM9Exn_part2F20catch_exn1_from_llvm_9_code, %L142), ptr @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP.recover_rbp_var.L142
+  store ptr blockaddress(@_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP, %L142), ptr @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP.recover_rbp_var.L142
   %67 = call  ptr @llvm.stacksave()
   %68 = alloca { i64, i64, i64, i64 }
   %69 = ptrtoint ptr %68 to i64
@@ -372,7 +372,7 @@ L176:
   %51 = icmp eq i64 %50, 0
   br i1 %51, label %L177, label %L152
 L177:
-  store ptr blockaddress(@_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_10_code, %L176), ptr @_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_HIDE_STAMP.recover_rbp_var.L176
+  store ptr blockaddress(@_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_HIDE_STAMP, %L176), ptr @_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_HIDE_STAMP.recover_rbp_var.L176
   %52 = call  ptr @llvm.stacksave()
   %53 = alloca { i64, i64, i64, i64 }
   %54 = ptrtoint ptr %53 to i64
@@ -580,7 +580,7 @@ L218:
   %61 = icmp eq i64 %60, 0
   br i1 %61, label %L219, label %L185
 L219:
-  store ptr blockaddress(@_OM9Exn_part2F27catch_exn1_nested_from_llvm_11_code, %L218), ptr @_OM9Exn_part2F27catch_exn1_nested_from_llvm_HIDE_STAMP.recover_rbp_var.L218
+  store ptr blockaddress(@_OM9Exn_part2F27catch_exn1_nested_from_llvm_HIDE_STAMP, %L218), ptr @_OM9Exn_part2F27catch_exn1_nested_from_llvm_HIDE_STAMP.recover_rbp_var.L218
   %62 = call  ptr @llvm.stacksave()
   %63 = alloca { i64, i64, i64, i64 }
   %64 = ptrtoint ptr %63 to i64
@@ -1049,7 +1049,7 @@ L332:
   %105 = icmp eq i64 %104, 0
   br i1 %105, label %L333, label %L244
 L333:
-  store ptr blockaddress(@_OM9Exn_part2F11complicated_15_code, %L332), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L332
+  store ptr blockaddress(@_OM9Exn_part2F11complicated_HIDE_STAMP, %L332), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L332
   %106 = call  ptr @llvm.stacksave()
   %107 = alloca { i64, i64, i64, i64 }
   %108 = ptrtoint ptr %107 to i64
@@ -1124,7 +1124,7 @@ L334:
   %151 = icmp eq i64 %150, 0
   br i1 %151, label %L335, label %L260
 L335:
-  store ptr blockaddress(@_OM9Exn_part2F11complicated_15_code, %L334), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L334
+  store ptr blockaddress(@_OM9Exn_part2F11complicated_HIDE_STAMP, %L334), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L334
   %152 = call  ptr @llvm.stacksave()
   %153 = alloca { i64, i64, i64, i64 }
   %154 = ptrtoint ptr %153 to i64
@@ -1199,7 +1199,7 @@ L336:
   %197 = icmp eq i64 %196, 0
   br i1 %197, label %L337, label %L276
 L337:
-  store ptr blockaddress(@_OM9Exn_part2F11complicated_15_code, %L336), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L336
+  store ptr blockaddress(@_OM9Exn_part2F11complicated_HIDE_STAMP, %L336), ptr @_OM9Exn_part2F11complicated_HIDE_STAMP.recover_rbp_var.L336
   %198 = call  ptr @llvm.stacksave()
   %199 = alloca { i64, i64, i64, i64 }
   %200 = ptrtoint ptr %199 to i64
@@ -1524,7 +1524,7 @@ L394:
   %46 = icmp eq i64 %45, 0
   br i1 %46, label %L395, label %L353
 L395:
-  store ptr blockaddress(@_OM9Exn_part2F13raise_in_loop_16_code, %L394), ptr @_OM9Exn_part2F13raise_in_loop_HIDE_STAMP.recover_rbp_var.L394
+  store ptr blockaddress(@_OM9Exn_part2F13raise_in_loop_HIDE_STAMP, %L394), ptr @_OM9Exn_part2F13raise_in_loop_HIDE_STAMP.recover_rbp_var.L394
   %47 = call  ptr @llvm.stacksave()
   %48 = alloca { i64, i64, i64, i64 }
   %49 = ptrtoint ptr %48 to i64
@@ -1758,7 +1758,7 @@ L426:
   %48 = icmp eq i64 %47, 0
   br i1 %48, label %L427, label %L403
 L427:
-  store ptr blockaddress(@_OM9Exn_part2F14catch_wildcard_17_code, %L426), ptr @_OM9Exn_part2F14catch_wildcard_HIDE_STAMP.recover_rbp_var.L426
+  store ptr blockaddress(@_OM9Exn_part2F14catch_wildcard_HIDE_STAMP, %L426), ptr @_OM9Exn_part2F14catch_wildcard_HIDE_STAMP.recover_rbp_var.L426
   %49 = call  ptr @llvm.stacksave()
   %50 = alloca { i64, i64, i64, i64 }
   %51 = ptrtoint ptr %50 to i64
@@ -1822,7 +1822,7 @@ L403:
   store i64 1, ptr %18
   %87 = ptrtoint ptr @camlExn_part2__immstring215 to i64
   store i64 %87, ptr %19
-  %88 = ptrtoint ptr @camlStdlib__print_endline_138 to i64
+  %88 = ptrtoint ptr @camlStdlib__print_endline_HIDE_STAMP to i64
   store i64 %88, ptr %20
   %89 = load ptr addrspace(1), ptr %20
   %90 = getelementptr i8, ptr addrspace(1) %89, i64 16
@@ -1861,7 +1861,7 @@ L416:
   %111 = load ptr addrspace(1), ptr %23
   store ptr addrspace(1) %111, ptr %24
   store i64 21, ptr %25
-  %112 = ptrtoint ptr @camlStdlib__print_endline_138 to i64
+  %112 = ptrtoint ptr @camlStdlib__print_endline_HIDE_STAMP to i64
   store i64 %112, ptr %26
   %113 = load ptr addrspace(1), ptr %26
   %114 = getelementptr i8, ptr addrspace(1) %113, i64 16
@@ -1891,7 +1891,7 @@ L419:
   store ptr addrspace(1) %128, ptr %29
   %129 = load ptr addrspace(1), ptr %29
   store ptr addrspace(1) %129, ptr %30
-  %130 = ptrtoint ptr @camlStdlib__print_endline_138 to i64
+  %130 = ptrtoint ptr @camlStdlib__print_endline_HIDE_STAMP to i64
   store i64 %130, ptr %31
   %131 = load ptr addrspace(1), ptr %31
   %132 = getelementptr i8, ptr addrspace(1) %131, i64 16
@@ -2046,25 +2046,25 @@ define private oxcamlcc { { i64, i64 }, { i64 } } @wrap_try(i64 %0, i64 %1) retu
 
 @camlExn_part2__gc_roots = global { ptr, i64 } { ptr @camlExn_part2__Exn3229, i64 0 }, section ".data", align 8
 @header.camlExn_part2 = global i64 11008, section ".data", align 8
-@camlExn_part2 = global { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr } { ptr @camlExn_part2__Exn3229, ptr @camlExn_part2__catch_exn1_from_llvm_9, ptr @camlExn_part2__raise_exn1_catch_exn2_from_llvm_10, ptr @camlExn_part2__catch_exn1_nested_from_llvm_11, ptr @camlExn_part2__raise_1_12, ptr @camlExn_part2__raise_2_13, ptr @camlExn_part2__raise_3_14, ptr @camlExn_part2__complicated_15, ptr @camlExn_part2__raise_in_loop_16, ptr @camlExn_part2__catch_wildcard_17 }, section ".data", align 8
-@header.camlExn_part2__catch_wildcard_17 = global i64 3063, section ".data", align 8
-@camlExn_part2__catch_wildcard_17 = global { ptr, i64 } { ptr @_OM9Exn_part2F14catch_wildcard_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__raise_in_loop_16 = global i64 3063, section ".data", align 8
-@camlExn_part2__raise_in_loop_16 = global { ptr, i64 } { ptr @_OM9Exn_part2F13raise_in_loop_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__complicated_15 = global i64 3063, section ".data", align 8
-@camlExn_part2__complicated_15 = global { ptr, i64 } { ptr @_OM9Exn_part2F11complicated_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__raise_3_14 = global i64 3063, section ".data", align 8
-@camlExn_part2__raise_3_14 = global { ptr, i64 } { ptr @_OM9Exn_part2F7raise_3_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__raise_2_13 = global i64 3063, section ".data", align 8
-@camlExn_part2__raise_2_13 = global { ptr, i64 } { ptr @_OM9Exn_part2F7raise_2_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__raise_1_12 = global i64 4087, section ".data", align 8
-@camlExn_part2__raise_1_12 = global { ptr, i64, ptr } { ptr @caml_curry2, i64 180143985094819847, ptr @_OM9Exn_part2F7raise_1_HIDE_STAMP }, section ".data", align 8
-@header.camlExn_part2__catch_exn1_nested_from_llvm_11 = global i64 3063, section ".data", align 8
-@camlExn_part2__catch_exn1_nested_from_llvm_11 = global { ptr, i64 } { ptr @_OM9Exn_part2F27catch_exn1_nested_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__raise_exn1_catch_exn2_from_llvm_10 = global i64 3063, section ".data", align 8
-@camlExn_part2__raise_exn1_catch_exn2_from_llvm_10 = global { ptr, i64 } { ptr @_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
-@header.camlExn_part2__catch_exn1_from_llvm_9 = global i64 3063, section ".data", align 8
-@camlExn_part2__catch_exn1_from_llvm_9 = global { ptr, i64 } { ptr @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@camlExn_part2 = global { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr } { ptr @camlExn_part2__Exn3229, ptr @camlExn_part2__catch_exn1_from_llvm_HIDE_STAMP, ptr @camlExn_part2__raise_exn1_catch_exn2_from_llvm_HIDE_STAMP, ptr @camlExn_part2__catch_exn1_nested_from_llvm_HIDE_STAMP, ptr @camlExn_part2__raise_1_HIDE_STAMP, ptr @camlExn_part2__raise_2_HIDE_STAMP, ptr @camlExn_part2__raise_3_HIDE_STAMP, ptr @camlExn_part2__complicated_HIDE_STAMP, ptr @camlExn_part2__raise_in_loop_HIDE_STAMP, ptr @camlExn_part2__catch_wildcard_HIDE_STAMP }, section ".data", align 8
+@header.camlExn_part2__catch_wildcard_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__catch_wildcard_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F14catch_wildcard_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__raise_in_loop_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__raise_in_loop_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F13raise_in_loop_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__complicated_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__complicated_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F11complicated_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__raise_3_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__raise_3_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F7raise_3_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__raise_2_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__raise_2_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F7raise_2_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__raise_1_HIDE_STAMP = global i64 4087, section ".data", align 8
+@camlExn_part2__raise_1_HIDE_STAMP = global { ptr, i64, ptr } { ptr @caml_curry2, i64 180143985094819847, ptr @_OM9Exn_part2F7raise_1_HIDE_STAMP }, section ".data", align 8
+@header.camlExn_part2__catch_exn1_nested_from_llvm_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__catch_exn1_nested_from_llvm_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F27catch_exn1_nested_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__raise_exn1_catch_exn2_from_llvm_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__raise_exn1_catch_exn2_from_llvm_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F31raise_exn1_catch_exn2_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
+@header.camlExn_part2__catch_exn1_from_llvm_HIDE_STAMP = global i64 3063, section ".data", align 8
+@camlExn_part2__catch_exn1_from_llvm_HIDE_STAMP = global { ptr, i64 } { ptr @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP, i64 108086391056891909 }, section ".data", align 8
 @header.camlExn_part2__Exn3229 = global i64 3064, section ".data", align 8
 @camlExn_part2__Exn3229 = global { ptr, i64 } { ptr @camlExn_part2__immstring6, i64 1 }, section ".data", align 8
 @header.camlExn_part2__immstring6 = global i64 3068, section ".data", align 8
@@ -2094,7 +2094,7 @@ define private oxcamlcc { { i64, i64 }, { i64 } } @wrap_try(i64 %0, i64 %1) retu
 @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP.recover_rbp_asm.L142 = external global ptr
 @_OM9Exn_part2F20catch_exn1_from_llvm_HIDE_STAMP.recover_rbp_var.L142 = global ptr zeroinitializer, section ".data", align 8
 @camlExn_part1 = external global ptr
-@camlStdlib__print_endline_138 = external global ptr
+@camlStdlib__print_endline_HIDE_STAMP = external global ptr
 @caml_c_call = external global ptr
 @caml_curry2 = external global ptr
 @caml_exn_Assert_failure = external global ptr
