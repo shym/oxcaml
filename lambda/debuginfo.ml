@@ -82,6 +82,7 @@ module Scoped_location = struct
   let enter_anonymous_function ~scopes ~assume_zero_alloc ~loc =
     let str = str_fun scopes in
     let (file, line, col) = Location.get_pos_info loc.loc_start in
+    let file = Filename.basename file in
     let mangling_item : Structured_mangling.path_item option =
       Some (Anonymous_function (line, col, Some file))
     in
@@ -91,6 +92,7 @@ module Scoped_location = struct
   let enter_anonymous_module ~scopes ~loc =
     let str = str scopes in
     let (file, line, col) = Location.get_pos_info loc.loc_start in
+    let file = Filename.basename file in
     let mangling_item : Structured_mangling.path_item option =
       Some (Anonymous_module (line, col, Some file))
     in
