@@ -455,6 +455,7 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
   | [] -> [Function fallback_name]
-  | item :: _ -> path_of_debug_info_scopes [] item.dinfo_scopes
+  | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
+  | multi -> Printf.eprintf "DEBUG: %s\n%!" (Dbg.to_string multi)
   (* CR spies: This should be looked at again.
     How can we have multiple debug entries here? *)
