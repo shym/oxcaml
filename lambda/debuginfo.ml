@@ -456,16 +456,19 @@ let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
 
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
-  | [] -> [Function fallback_name]
+  | [] ->
+      Printf.fprintf log "Fallback: %s\n\n" fallback_name;
+      [Function fallback_name]
   | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
   | (item :: _) as multi ->
       let compilation_unit = Compilation_unit.get_current_exn () in
+      Printf.fprintf log "%s =\n" (Dbg.to_string multi);
       List.iter (fun item ->
         let path = path_of_debug_info_scopes [] item.dinfo_scopes in
-        Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
-        |> Symbol.linkage_name |> Linkage_name.to_string |> output_string log;
-        output_char log '\n') multi;
-      output_char log '\n';
+        let mangled = Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
+            |> Symbol.linkage_name |> Linkage_name.to_string in
+        Printf.fprintf log "%s\n" mangled) multi;
+      Printf.fprintf log "\n";
       path_of_debug_info_scopes [] item.dinfo_scopes
   (* CR spies: This should be looked at again.
     How can we have multiple debug entries here? *)
