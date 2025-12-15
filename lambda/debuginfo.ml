@@ -457,7 +457,11 @@ let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
   | [] ->
-      Printf.fprintf log "Fallback: %s\n\n" fallback_name;
+      Printf.fprintf log "Fallback: %s %s\n\n"
+        (Global_module.Name.to_string
+          (Compilation_unit.to_global_name_exn
+            (Compilation_unit.get_current_exn ())))
+        fallback_name;
       [Function fallback_name]
   | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
   | (item :: _) as multi ->
