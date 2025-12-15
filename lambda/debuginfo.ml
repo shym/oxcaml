@@ -452,9 +452,27 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   | Cons { prev; mangling_path; _ } ->
     path_of_debug_info_scopes (mangling_path @ acc) prev
 
+let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
+
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
-  | [] -> [Function fallback_name]
-  | item :: _ -> path_of_debug_info_scopes [] item.dinfo_scopes
+  | [] ->
+      Printf.fprintf log "Fallback: %s %s\n\n"
+        (Global_module.Name.to_string
+          (Compilation_unit.to_global_name_exn
+            (Compilation_unit.get_current_exn ())))
+        fallback_name;
+      [Function fallback_name]
+  | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
+  | (item :: _) as multi ->
+      let compilation_unit = Compilation_unit.get_current_exn () in
+      Printf.fprintf log "%s =\n" (Dbg.to_string multi);
+      List.iter (fun item ->
+        let path = path_of_debug_info_scopes [] item.dinfo_scopes in
+        let mangled = Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
+            |> Symbol.linkage_name |> Linkage_name.to_string in
+        Printf.fprintf log "%s\n" mangled) multi;
+      Printf.fprintf log "with fallback: %s\n\n" fallback_name;
+      path_of_debug_info_scopes [] item.dinfo_scopes
   (* CR spies: This should be looked at again.
     How can we have multiple debug entries here? *)
