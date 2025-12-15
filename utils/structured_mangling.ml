@@ -28,12 +28,19 @@
  * DEALINGS IN THE SOFTWARE.                                                  *
  ******************************************************************************)
 
+let symbol_prefix = "_O"
+let tag_module = "M"
+let tag_anonymous_module = "S" (* struct *)
+let tag_function = "F"
+let tag_anonymous_function = "L" (* lambda *)
+let tag_partial_function = "P"
+
 type path_item =
-  | Module of string (* M *)
-  | Anonymous_function of int * int * string option (* L *)
-  | Named_function of string (* F *)
-  | Partial_function (* P *)
-  | Anonymous_module of int * int * string option (* S *)
+  | Module of string
+  | Anonymous_module of int * int * string option
+  | Function of string
+  | Anonymous_function of int * int * string option
+  | Partial_function
 
 type path = path_item list
 
@@ -98,17 +105,17 @@ let run_length_encode sym =
   Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
 
 let mangle_chunk = function
-  | Module sym -> "M" ^ run_length_encode sym
-  | Named_function sym -> "F" ^ run_length_encode sym
-  | Anonymous_function (line, col, file_opt) ->
-    let file_name = Option.value ~default:"" file_opt in
-    let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    "L" ^ run_length_encode ts
+  | Module sym -> tag_module ^ run_length_encode sym
   | Anonymous_module (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    "S" ^ run_length_encode ts
-  | Partial_function -> "P"
+    tag_anonymous_module ^ run_length_encode ts
+  | Function sym -> tag_function ^ run_length_encode sym
+  | Anonymous_function (line, col, file_opt) ->
+    let file_name = Option.value ~default:"" file_opt in
+    let ts = Printf.sprintf "%s_%d_%d" file_name line col in
+    tag_anonymous_function ^ run_length_encode ts
+  | Partial_function -> tag_partial_function
 
 let mangle_path (path : path) : string =
   let b = Buffer.create 10 in
@@ -117,7 +124,7 @@ let mangle_path (path : path) : string =
 
 let mangle_path_with_prefix (path : path) : string =
   let b = Buffer.create 10 in
-  Buffer.add_string b "_O";
+  Buffer.add_string b symbol_prefix;
   List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) path;
   Buffer.contents b
 
