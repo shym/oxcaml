@@ -109,6 +109,9 @@ module Scoped_location = struct
     let name = Compilation_unit.name_as_string cu in
     cons scopes Sc_module_definition (dot scopes name) name None
       ~assume_zero_alloc:ZA.Assume_info.none
+    (* [None]: note that no mangling item is added when entering a
+       compilation unit as the compilation unit part is handled
+       directly in [Symbol.for_structured_mangling_path] *)
 
   let enter_module_definition ~scopes id =
     let name = Ident.name id in
