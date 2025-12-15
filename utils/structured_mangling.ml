@@ -105,25 +105,24 @@ let encode (sym : string) =
   in
   aux 0 Raw
 
-let escape_unicode sym =
-  if String.for_all is_out_char sym then "", sym else "u", encode sym
-
-let run_length_encode sym =
-  let pref, rsym = escape_unicode sym in
+let encode sym =
+  let pref, rsym =
+    if String.for_all is_out_char sym then "", sym else "u", encode sym
+  in
   Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
 
 let mangle_chunk = function
-  | Module sym -> tag_module ^ run_length_encode sym
+  | Module sym -> tag_module ^ encode sym
   | Anonymous_module (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    tag_anonymous_module ^ run_length_encode ts
-  | Class sym -> tag_class ^ run_length_encode sym
-  | Function sym -> tag_function ^ run_length_encode sym
+    tag_anonymous_module ^ encode ts
+  | Class sym -> tag_class ^ encode sym
+  | Function sym -> tag_function ^ encode sym
   | Anonymous_function (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    tag_anonymous_function ^ run_length_encode ts
+    tag_anonymous_function ^ encode ts
   | Partial_function -> tag_partial_function
 
 let mangle_path (path : path) : string =
