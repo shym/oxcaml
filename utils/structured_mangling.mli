@@ -31,6 +31,7 @@
 type path_item =
   | Module of string
   | Anonymous_module of int * int * string option
+  | Class of string
   | Function of string
   | Anonymous_function of int * int * string option
   | Partial_function
