@@ -102,7 +102,7 @@ module Scoped_location = struct
 
   let enter_value_definition ~scopes ~assume_zero_alloc id =
     cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id)
-      (Some (Named_function (Ident.name id)))
+      (Some (Function (Ident.name id)))
       ~assume_zero_alloc
 
   let enter_compilation_unit ~scopes cu =
@@ -127,7 +127,7 @@ module Scoped_location = struct
       | _ -> dot scopes s
     in
     cons scopes Sc_method_definition str s
-      ~assume_zero_alloc:ZA.Assume_info.none (Some (Named_function str))
+      ~assume_zero_alloc:ZA.Assume_info.none (Some (Function str))
 
   let enter_lazy ~scopes = cons scopes Sc_lazy (str scopes) ""
                              ~assume_zero_alloc:ZA.Assume_info.none None
@@ -451,7 +451,7 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
 
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
-  | [] -> [Named_function fallback_name]
+  | [] -> [Function fallback_name]
   | item :: _ -> path_of_debug_info_scopes [] item.dinfo_scopes
   (* CR spies: This should be looked at again.
     How can we have multiple debug entries here? *)
