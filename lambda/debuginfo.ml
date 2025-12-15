@@ -117,7 +117,7 @@ module Scoped_location = struct
 
   let enter_class_definition ~scopes id =
     let name = Ident.name id in
-    cons scopes Sc_class_definition (dot scopes name) name (Some (Module name))
+    cons scopes Sc_class_definition (dot scopes name) name (Some (Class name))
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_method_definition ~scopes (s : Asttypes.label) =
