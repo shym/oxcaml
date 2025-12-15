@@ -31,6 +31,7 @@
 let symbol_prefix = "_O"
 let tag_module = "M"
 let tag_anonymous_module = "S" (* struct *)
+let tag_class = "C"
 let tag_function = "F"
 let tag_anonymous_function = "L" (* lambda *)
 let tag_partial_function = "P"
@@ -38,6 +39,7 @@ let tag_partial_function = "P"
 type path_item =
   | Module of string
   | Anonymous_module of int * int * string option
+  | Class of string
   | Function of string
   | Anonymous_function of int * int * string option
   | Partial_function
@@ -110,6 +112,7 @@ let mangle_chunk = function
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
     tag_anonymous_module ^ run_length_encode ts
+  | Class sym -> tag_class ^ run_length_encode sym
   | Function sym -> tag_function ^ run_length_encode sym
   | Anonymous_function (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
