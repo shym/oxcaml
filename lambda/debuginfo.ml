@@ -452,7 +452,8 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   | Cons { prev; mangling_item = Some mangling_item; _ } ->
     path_of_debug_info_scopes (mangling_item :: acc) prev
 
-let log = open_out "/tmp/log"
+let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
+
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
   | [] -> [Function fallback_name]
@@ -462,8 +463,8 @@ let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
       List.iter (fun item ->
         let path = path_of_debug_info_scopes [] item.dinfo_scopes in
         Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
-        |> Symbol.linkage_name |> output_string log;
-        output_char log '\n');
+        |> Symbol.linkage_name |> Linkage_name.to_string |> output_string log;
+        output_char log '\n') multi;
       output_char log '\n';
       path_of_debug_info_scopes [] item.dinfo_scopes
   (* CR spies: This should be looked at again.
