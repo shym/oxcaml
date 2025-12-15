@@ -452,10 +452,19 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   | Cons { prev; mangling_item = Some mangling_item; _ } ->
     path_of_debug_info_scopes (mangling_item :: acc) prev
 
+let log = open_out "/tmp/log"
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
   | [] -> [Function fallback_name]
   | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
-  | multi -> Printf.eprintf "DEBUG: %s\n%!" (Dbg.to_string multi)
+  | (item :: _) as multi ->
+      let compilation_unit = Compilation_unit.get_current_exn () in
+      List.iter (fun item ->
+        let path = path_of_debug_info_scopes [] item.dinfo_scopes in
+        Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
+        |> Symbol.linkage_name |> output_string log;
+        output_char log '\n');
+      output_char log '\n';
+      path_of_debug_info_scopes [] item.dinfo_scopes
   (* CR spies: This should be looked at again.
     How can we have multiple debug entries here? *)
