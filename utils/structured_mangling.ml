@@ -60,21 +60,23 @@ let is_out_char = function
   | '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z' | '_' -> true
   | _ -> false
 
-let upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-let hex = "0123456789abcdef"
-
-(** Encode a length as base-26 number using [[A-Z]] *)
-let rec encode_len buf len =
-  let r = len mod 26 and q = len / 26 in
-  if q > 0 then encode_len buf q;
+(** [base26 buf n] encodes the integer [n] as a base-26 number using [[A-Z]]
+    into the buffer [buf], with [A] standing for 0, [B] for 1, ..., [Z] for 25,
+    [BA] for 26, [BB] for 27, ... *)
+let rec base26 buf n =
+  let upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" in
+  let r = n mod 26 and q = n / 26 in
+  if q > 0 then base26 buf q;
   Buffer.add_char buf upper.[r]
 
-let encode_char buf c =
+(** [hex buf c] encodes the [char] [c] in hexadecimal (using lowercase letters)
+    in the buffer [buf] *)
+let hex buf c =
+  let chars = "0123456789abcdef" in
   let c = Char.code c in
   let h = (c lsr 4) land 0xf and l = c land 0xf in
-  Buffer.add_char buf hex.[h];
-  Buffer.add_char buf hex.[l]
+  Buffer.add_char buf chars.[h];
+  Buffer.add_char buf chars.[l]
 
 type encode_state =
   | Raw
@@ -94,8 +96,8 @@ let encode (sym : string) =
         incr ins_pos;
         aux (i + 1) Raw)
       else (
-        encode_len enc !ins_pos;
-        encode_char enc sym.[i];
+        base26 enc !ins_pos;
+        hex enc sym.[i];
         aux (i + 1) Enc)
     | Enc ->
       if is_out_char sym.[i]
@@ -104,7 +106,7 @@ let encode (sym : string) =
         ins_pos := 1;
         aux (i + 1) Raw)
       else (
-        encode_char enc sym.[i];
+        hex enc sym.[i];
         aux (i + 1) Enc)
   in
   aux 0 Raw
