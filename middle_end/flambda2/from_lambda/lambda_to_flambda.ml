@@ -53,11 +53,11 @@ let name_for_function (func : Lambda.lfunction) =
     match Config.name_mangling_version with Flat -> false | Structured -> true
   in
   match func.loc with
-  | Loc_unknown -> "fn"
+  | Loc_unknown -> "BLABLA"
   | Loc_known { loc; _ } ->
     if Flambda_features.Expert.shorten_symbol_names ()
        || mangling_scheme_locates_anonymous_functions
-    then "fn"
+    then "BLIBLI"
     else Format.asprintf "fn[%a]" print_compact_location loc
 
 let extra_args_for_exn_continuation env exn_handler =
