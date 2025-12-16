@@ -52,6 +52,10 @@ type path_item =
 
 type path = path_item list
 
+(** [is_out_char c] is true iff [c] is in the output character set, ie the
+    restricted set of characters that are allowed in our mangled symbols. That
+    set is constrained by portability across OSes and toolchains and so is
+    restricted to just ASCII alphanumeric characters plus [_] *)
 let is_out_char = function
   | '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z' | '_' -> true
   | _ -> false
