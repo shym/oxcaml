@@ -125,18 +125,7 @@ let mangle_chunk = function
     tag_anonymous_function ^ encode ts
   | Partial_function -> tag_partial_function
 
-let mangle_path (path : path) : string =
-  let b = Buffer.create 10 in
-  List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) path;
-  Buffer.contents b
-
-let mangle_path_with_prefix (path : path) : string =
-  let b = Buffer.create 10 in
-  Buffer.add_string b ocaml_prefix;
-  List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) path;
-  Buffer.contents b
-
-let mangle_comp_unit (cu : Compilation_unit.t) : string =
+let path_from_comp_unit (cu : Compilation_unit.t) : path =
   let for_pack_prefix, name, flattened_instance_args =
     Compilation_unit.flatten cu
   in
@@ -148,7 +137,7 @@ let mangle_comp_unit (cu : Compilation_unit.t) : string =
       Compilation_unit.Prefix.to_list for_pack_prefix
       |> List.map (fun x -> Module (Compilation_unit.Name.to_string x))
     in
-    mangle_path_with_prefix (Module name :: (pack_names @ [Module name])))
+    Module name :: (pack_names @ [Module name]))
   else
     (* TODO For Parameterised libraries??? *)
     let instance_separator = "____" in
@@ -164,10 +153,12 @@ let mangle_comp_unit (cu : Compilation_unit.t) : string =
             (String.concat "" [instance_separator; extra_separators; value]))
         flattened_instance_args
     in
-    mangle_path_with_prefix (Module name :: arg_segments)
+    Module name :: arg_segments
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   let b = Buffer.create 10 in
-  Buffer.add_string b (mangle_comp_unit cu);
-  Buffer.add_string b (mangle_path path);
+  let aux p = List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) p in
+  Buffer.add_string b ocaml_prefix;
+  aux (path_from_comp_unit cu);
+  aux path;
   Buffer.contents b
