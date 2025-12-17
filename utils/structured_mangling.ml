@@ -82,44 +82,42 @@ type encode_state =
   | Raw
   | Enc
 
-let encode (sym : string) =
-  let raw = Buffer.create (String.length sym)
-  and enc = Buffer.create (2 * String.length sym)
-  and ins_pos = ref 0 in
-  let rec aux i = function
-    | _ when i >= String.length sym ->
+let encode str =
+  let rec aux raw enc ins_pos i = function
+    | _ when i >= String.length str ->
       Printf.sprintf "%s_%s" (Buffer.contents enc) (Buffer.contents raw)
     | Raw ->
-      if is_out_char sym.[i]
+      if is_out_char str.[i]
       then (
-        Buffer.add_char raw sym.[i];
+        Buffer.add_char raw str.[i];
         incr ins_pos;
-        aux (i + 1) Raw)
+        aux raw enc ins_pos (i + 1) Raw)
       else (
         base26 enc !ins_pos;
-        hex enc sym.[i];
-        aux (i + 1) Enc)
+        hex enc str.[i];
+        aux raw enc ins_pos (i + 1) Enc)
     | Enc ->
-      if is_out_char sym.[i]
+      if is_out_char str.[i]
       then (
-        Buffer.add_char raw sym.[i];
+        Buffer.add_char raw str.[i];
         ins_pos := 1;
-        aux (i + 1) Raw)
+        aux raw enc ins_pos (i + 1) Raw)
       else (
-        hex enc sym.[i];
-        aux (i + 1) Enc)
+        hex enc str.[i];
+        aux raw enc ins_pos (i + 1) Enc)
   in
-  aux 0 Raw
-
-let encode sym =
-  let pref, rsym =
-    if String.length sym = 0
-       || (match sym.[0] with '0' .. '9' -> false | _ -> true)
-          && String.for_all is_out_char sym
-    then "", sym
-    else "u", encode sym
+  let pref, str =
+    if String.length str = 0
+       || (match str.[0] with '0' .. '9' -> false | _ -> true)
+          && String.for_all is_out_char str
+    then "", str
+    else
+      let raw = Buffer.create (String.length str)
+      and enc = Buffer.create (2 * String.length str)
+      and ins_pos = ref 0 in
+      "u", aux raw enc ins_pos 0 Raw
   in
-  Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
+  Printf.sprintf "%s%d%s" pref (String.length str) str
 
 let mangle_chunk = function
   | Module sym -> tag_module ^ encode sym
