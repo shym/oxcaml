@@ -130,10 +130,12 @@ type encode_state =
   | Raw
   | Enc
 
-let encode str =
+let encode buf str =
   let rec aux raw enc ins_pos i = function
     | _ when i >= String.length str ->
-      Printf.sprintf "%s_%s" (Buffer.contents enc) (Buffer.contents raw)
+      Printf.bprintf buf "u%d%a_%a"
+        (Buffer.length enc + Buffer.length raw + 1)
+        Buffer.add_buffer enc Buffer.add_buffer raw
     | Raw ->
       if is_out_char str.[i]
       then (
@@ -154,32 +156,34 @@ let encode str =
         hex enc str.[i];
         aux raw enc ins_pos (i + 1) Enc)
   in
-  let pref, str =
-    if String.length str = 0
-       || (match str.[0] with '0' .. '9' -> false | _ -> true)
-          && String.for_all is_out_char str
-    then "", str
-    else
-      let raw = Buffer.create (String.length str)
-      and enc = Buffer.create (2 * String.length str)
-      and ins_pos = ref 0 in
-      "u", aux raw enc ins_pos 0 Raw
-  in
-  Printf.sprintf "%s%d%s" pref (String.length str) str
+  if String.length str = 0
+     || (match str.[0] with '0' .. '9' -> false | _ -> true)
+        && String.for_all is_out_char str
+  then Printf.bprintf buf "%d%s" (String.length str) str
+  else
+    let raw = Buffer.create (String.length str)
+    and enc = Buffer.create (2 * String.length str)
+    and ins_pos = ref 0 in
+    aux raw enc ins_pos 0 Raw
 
-let mangle_chunk = function
-  | Module sym -> tag_module ^ encode sym
+let mangle_path_item buf path_item =
+  let output tag sym = Printf.bprintf buf "%s%a" tag encode sym in
+  match path_item with
+  | Module sym -> output tag_module sym
   | Anonymous_module (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    tag_anonymous_module ^ encode ts
-  | Class sym -> tag_class ^ encode sym
-  | Function sym -> tag_function ^ encode sym
+    output tag_anonymous_module ts
+  | Class sym -> output tag_class sym
+  | Function sym -> output tag_function sym
   | Anonymous_function (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
     let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    tag_anonymous_function ^ encode ts
-  | Partial_function -> tag_partial_function
+    output tag_anonymous_function ts
+  | Partial_function -> Printf.bprintf buf "%s" tag_partial_function
+
+let mangle_path buf path =
+  List.iter (fun pi -> Printf.bprintf buf "%a" mangle_path_item pi) path
 
 let path_from_comp_unit (cu : Compilation_unit.t) : path =
   let for_pack_prefix, name, flattened_instance_args =
@@ -213,8 +217,7 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   let b = Buffer.create 10 in
-  let aux p = List.iter (fun s -> Buffer.add_string b (mangle_chunk s)) p in
   Buffer.add_string b ocaml_prefix;
-  aux (path_from_comp_unit cu);
-  aux path;
+  mangle_path b (path_from_comp_unit cu);
+  mangle_path b path;
   Buffer.contents b
