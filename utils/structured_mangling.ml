@@ -78,6 +78,54 @@ let hex buf c =
   Buffer.add_char buf chars.[h];
   Buffer.add_char buf chars.[l]
 
+(** Encode an arbitrary string into the output character set (ie [[0-9A-Za-z_]],
+    see {!is_out_char} for more details)
+
+    The encoded string is composed of:
+    - an optional [u], which is a flag indicating how the payload is encoded
+      ([u] stands for {i universal} or {i Unicode}, as it allows any string of
+      bytes to be encoded),
+    - a decimal integer, which is the length of the following component,
+    - the payload.
+
+    If the original string contains only output characters and does not start
+    with a digit, the payload is the original string as is and the optional [u]
+    is absent.
+
+    Otherwise, the encoded string will start by [u]. The payload is computed by
+    first decomposing the original string into the subsequence of its output
+    characters and its non-output characters, and then by concatenating:
+    {ul
+    {- for each chunk of consecutive non-output characters:
+      - encode its relative insertion position as a base-26 number (see
+        {!base26}),
+      - encode every character in that chunk by the hexadecimal code of each byte,
+        using lowercase letters (ie [[0-9a-f]], see {!hex}),}
+    {- the separator character [_],}
+    {- the string of output characters.}}
+
+    Note that the choices of using decimal integers for the length, base-26
+    numbers for the insertion positions and lowercase hexadecimal for bytes
+    means that no explicit separator is required, it's never ambiguous.
+
+    {2 Some examples}
+
+    - [Structured_mangling] is composed only of output characters and starts
+      with a letter (not a digit) so its payload is the original string and its
+      full encoding with a space to increase legibility is
+      [19 Structured_mangling].
+    - [>>=] contains only non-output characters, so it is decomposed into the
+      empty string (of output characters) and the sequence of consecutive
+      characters [>>=] (so, in hexadecimal [3e 3e 3d]) that should be inserted
+      at position 0 (so, in base-26 [A]); its full encoding is [u 8 A 3e3e3d _],
+      again with spaces to increase legibility.
+    - [let*] is decomposed into [let], and [*] (so [2a]) to insert at position 3
+      (so [D]) in [let]; its full encoding is [u 7 D 2a _ let].
+    - [func'sub'] is decomposed into [funcsub], ['] (so [27]) to insert at
+      position 4 (so [E]) and a second ['] to insert at relative position 3 (the
+      length of [sub], so [D]); its full encoding is then
+      [u 14 E 27 D 27 _ funcsub].
+ *)
 type encode_state =
   | Raw
   | Enc
