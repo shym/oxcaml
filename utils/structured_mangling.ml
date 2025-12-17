@@ -113,7 +113,11 @@ let encode (sym : string) =
 
 let encode sym =
   let pref, rsym =
-    if String.for_all is_out_char sym then "", sym else "u", encode sym
+    if String.length sym = 0
+       || (match sym.[0] with '0' .. '9' -> false | _ -> true)
+          && String.for_all is_out_char sym
+    then "", sym
+    else "u", encode sym
   in
   Printf.sprintf "%s%d%s" pref (String.length rsym) rsym
 
