@@ -28,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.                                                  *
  ******************************************************************************)
 
-let ocaml_prefix = "_O"
+let ocaml_prefix = "_Caml"
 
 let tag_module = "M"
 
