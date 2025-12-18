@@ -454,10 +454,12 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
 
 let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
 
-let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
+let to_structured_mangling_path ?log_prefix ~fallback_name dbg : Structured_mangling.path =
+  let log_prefix = match log_prefix with Some x -> x ^ " " | None -> "" in
   match to_items dbg with
   | [] ->
-      Printf.fprintf log "Fallback: %s %s\n\n"
+      Printf.fprintf log "%sFallback: %s %s\n\n"
+        log_prefix
         (Global_module.Name.to_string
           (Compilation_unit.to_global_name_exn
             (Compilation_unit.get_current_exn ())))
@@ -466,7 +468,7 @@ let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   | [item] -> path_of_debug_info_scopes [] item.dinfo_scopes
   | (item :: _) as multi ->
       let compilation_unit = Compilation_unit.get_current_exn () in
-      Printf.fprintf log "%s =\n" (Dbg.to_string multi);
+      Printf.fprintf log "%s%s =\n" log_prefix (Dbg.to_string multi);
       List.iter (fun item ->
         let path = path_of_debug_info_scopes [] item.dinfo_scopes in
         let mangled = Symbol.for_structured_mangling_path ~compilation_unit ~path ~suffix:""
