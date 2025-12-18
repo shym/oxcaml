@@ -210,7 +210,8 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
     in
     Module name :: (pack_names @ [Module name]))
   else
-    (* TODO For Parameterised libraries??? *)
+    (* CR sspies Use the Flat mangling scheme for parameterised libraries for
+       now, a Structured version is postponed to a future PR *)
     let instance_separator = "____" in
     let instance_separator_depth_char = '_' in
     let arg_segments =
@@ -220,11 +221,10 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
             String.make depth instance_separator_depth_char
           in
           let value = value |> Compilation_unit.Name.to_string in
-          Module
-            (String.concat "" [instance_separator; extra_separators; value]))
+          String.concat "" [instance_separator; extra_separators; value])
         flattened_instance_args
     in
-    Module name :: arg_segments
+    [Module (String.concat "" (name :: arg_segments))]
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   let b = Buffer.create 10 in
