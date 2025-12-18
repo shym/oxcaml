@@ -128,43 +128,54 @@ let hex buf c =
  *)
 type encode_state =
   | Raw
-  | Enc
+  | Esc
 
-let encode buf str =
-  let rec aux raw enc ins_pos i = function
-    | _ when i >= String.length str ->
-      Printf.bprintf buf "u%d%a_%a"
-        (Buffer.length enc + Buffer.length raw + 1)
-        Buffer.add_buffer enc Buffer.add_buffer raw
-    | Raw ->
-      if is_out_char str.[i]
-      then (
-        Buffer.add_char raw str.[i];
-        incr ins_pos;
-        aux raw enc ins_pos (i + 1) Raw)
-      else (
-        base26 enc !ins_pos;
-        hex enc str.[i];
-        aux raw enc ins_pos (i + 1) Enc)
-    | Enc ->
-      if is_out_char str.[i]
-      then (
-        Buffer.add_char raw str.[i];
-        ins_pos := 1;
-        aux raw enc ins_pos (i + 1) Raw)
-      else (
-        hex enc str.[i];
-        aux raw enc ins_pos (i + 1) Enc)
-  in
-  if String.length str = 0
-     || (match str.[0] with '0' .. '9' -> false | _ -> true)
-        && String.for_all is_out_char str
-  then Printf.bprintf buf "%d%s" (String.length str) str
-  else
+(* [require_escaping str] is [true] iff [str] contains a non-output character or
+   if it starts with a digit (which could happen at least for anonymous modules
+   or functions coming from a file whose name starts with a digit; this yields a
+   warning but it is tolerated by the compiler so should also be tolerated by
+   the mangling scheme), so that it can be non-ambiguously appended to a decimal
+   integer to represent its length *)
+let require_escaping str =
+  String.length str > 0
+  &&
+  match str.[0] with
+  | '0' .. '9' -> true
+  | _ -> not (String.for_all is_out_char str)
+
+let rec encode buf str =
+  if require_escaping str
+  then (
     let raw = Buffer.create (String.length str)
-    and enc = Buffer.create (2 * String.length str)
+    and escaped = Buffer.create (2 * String.length str)
     and ins_pos = ref 0 in
-    aux raw enc ins_pos 0 Raw
+    encode_split_parts str raw escaped ins_pos 0 Raw;
+    Printf.bprintf buf "u%d%a_%a"
+      (Buffer.length escaped + Buffer.length raw + 1)
+      Buffer.add_buffer escaped Buffer.add_buffer raw)
+  else Printf.bprintf buf "%d%s" (String.length str) str
+
+and encode_split_parts str raw escaped ins_pos i = function
+  | _ when i >= String.length str -> ()
+  | Raw ->
+    if is_out_char str.[i]
+    then (
+      Buffer.add_char raw str.[i];
+      incr ins_pos;
+      encode_split_parts str raw escaped ins_pos (i + 1) Raw)
+    else (
+      base26 escaped !ins_pos;
+      hex escaped str.[i];
+      encode_split_parts str raw escaped ins_pos (i + 1) Esc)
+  | Esc ->
+    if is_out_char str.[i]
+    then (
+      Buffer.add_char raw str.[i];
+      ins_pos := 1;
+      encode_split_parts str raw escaped ins_pos (i + 1) Raw)
+    else (
+      hex escaped str.[i];
+      encode_split_parts str raw escaped ins_pos (i + 1) Esc)
 
 let mangle_path_item buf path_item =
   let output tag sym = Printf.bprintf buf "%s%a" tag encode sym in
