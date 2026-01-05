@@ -147,7 +147,7 @@ let for_name compilation_unit name =
     hash = Hashtbl.hash linkage_name; }
 
 let for_structured_mangling_path ~compilation_unit ~path ~suffix =
-  let name = Structured_mangling.mangle_ident compilation_unit path in
+  let name = Structured_mangling.mangle_ident path in
   let linkage_name =
     (* Note: Compilation unit no longer separated from the rest of the mangled
        name via the separator in this mangling scheme. *)
@@ -156,6 +156,8 @@ let for_structured_mangling_path ~compilation_unit ~path ~suffix =
   { compilation_unit;
     linkage_name;
     hash = Hashtbl.hash linkage_name; }
+  (* CR shym: risk of inconsistency between the compilation unit embedded in the
+     [path] and the [~compilation_unit]? *)
 
 
 let for_local_ident id =

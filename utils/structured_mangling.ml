@@ -226,9 +226,8 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
     in
     [Module (String.concat "" (name :: arg_segments))]
 
-let mangle_ident (cu : Compilation_unit.t) (path : path) =
+let mangle_ident (path : path) =
   let b = Buffer.create 10 in
   Buffer.add_string b ocaml_prefix;
-  mangle_path b (path_from_comp_unit cu);
   mangle_path b path;
   Buffer.contents b
