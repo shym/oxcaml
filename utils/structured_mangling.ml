@@ -197,34 +197,13 @@ let mangle_path buf path =
   List.iter (fun pi -> Printf.bprintf buf "%a" mangle_path_item pi) path
 
 let path_from_comp_unit (cu : Compilation_unit.t) : path =
-  let for_pack_prefix, name, flattened_instance_args =
-    Compilation_unit.flatten cu
-  in
-  let name = Compilation_unit.Name.to_string name in
-  if not (Compilation_unit.Prefix.is_empty for_pack_prefix)
-  then (
-    assert (match flattened_instance_args with [] -> true | _ -> false);
-    let pack_names =
-      Compilation_unit.Prefix.to_list for_pack_prefix
-      |> List.map (fun x -> Module (Compilation_unit.Name.to_string x))
-    in
-    Module name :: (pack_names @ [Module name]))
-  else
-    (* CR sspies Use the Flat mangling scheme for parameterised libraries for
-       now, a Structured version is postponed to a future PR *)
-    let instance_separator = "____" in
-    let instance_separator_depth_char = '_' in
-    let arg_segments =
-      List.map
-        (fun (depth, _param, value) ->
-          let extra_separators =
-            String.make depth instance_separator_depth_char
-          in
-          let value = value |> Compilation_unit.Name.to_string in
-          String.concat "" [instance_separator; extra_separators; value])
-        flattened_instance_args
-    in
-    [Module (String.concat "" (name :: arg_segments))]
+  (* CR sspies Use the Flat mangling scheme for parameterised libraries for now,
+     a Structured version is postponed to a future PR *)
+  let instance_separator = "____" in
+  let instance_separator_depth_char = '_' in
+  Compilation_unit.full_path_with_arguments_as_strings ~instance_separator
+    ~instance_separator_depth_char cu
+  |> List.map (fun x -> Module x)
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   let b = Buffer.create 10 in
