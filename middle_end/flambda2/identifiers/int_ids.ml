@@ -863,13 +863,6 @@ module Code_id = struct
     Table.add !grand_table_of_code_ids data
 
   let rename t =
-    let log_prefix = "RENAME " ^
-          (Global_module.Name.to_string
-            (Compilation_unit.to_global_name_exn
-              (get_compilation_unit t)))
-    in
-    ignore @@ Debuginfo.to_structured_mangling_path ~log_prefix
-      ~fallback_name:(name t) (debug t);
     create ~name:(name t) ~debug:(debug t) (Compilation_unit.get_current_exn ())
 
   let in_compilation_unit t comp_unit =

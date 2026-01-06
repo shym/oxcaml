@@ -128,7 +128,7 @@ val assume_zero_alloc : t -> ZA.Assume_info.t
       If the debug info is empty, the fallback name is used to populate the
       path. *)
 val to_structured_mangling_path :
-  ?log_prefix:string -> fallback_name:string -> t -> Structured_mangling.path
+  fallback_name:string -> t -> Structured_mangling.path
 
 
 module Dbg : sig
