@@ -525,13 +525,25 @@ let find_code_exn t id =
     in
     Exported_code.find_exn (t.get_imported_code ()) id
 
+let log =
+  open_out_gen
+    [Open_creat; Open_wronly; Open_append]
+    0o644 "/tmp/define_code.log"
+  |> Format.formatter_of_out_channel
+
 let define_code t ~code_id ~code =
-  if not
-       (Code_id.in_compilation_unit code_id
-          (Compilation_unit.get_current_exn ()))
+  Format.fprintf log "%a for %a\n" Compilation_unit.print
+    (Code_id.get_compilation_unit code_id)
+    Code_id.print code_id;
+  (if not
+        (Code_id.in_compilation_unit code_id
+           (Compilation_unit.get_current_exn ()))
   then
-    Misc.fatal_errorf "Cannot define code ID %a as it is from another unit:@ %a"
-      Code_id.print code_id Code.print code;
+    let cu = Code_id.get_compilation_unit code_id in
+    Misc.fatal_errorf
+      "Cannot define code ID %a as it is from another unit:@ %a vs %a"
+      Code_id.print code_id Compilation_unit.print cu Compilation_unit.print
+      (Compilation_unit.get_current_exn ()));
   if not (Code_id.equal code_id (Code.code_id code))
   then
     Misc.fatal_errorf "Code ID %a does not match code ID in@ %a" Code_id.print
