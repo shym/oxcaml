@@ -29,6 +29,7 @@
  ******************************************************************************)
 
 type path_item =
+  | Compilation_unit of string
   | Module of string
   | Anonymous_module of int * int * string option
   | Class of string

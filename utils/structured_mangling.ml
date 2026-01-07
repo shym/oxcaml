@@ -30,6 +30,8 @@
 
 let ocaml_prefix = "_Caml"
 
+let tag_compilation_unit = "U"
+
 let tag_module = "M"
 
 let tag_anonymous_module = "S" (* struct *)
@@ -43,6 +45,7 @@ let tag_anonymous_function = "L" (* lambda *)
 let tag_partial_function = "P"
 
 type path_item =
+  | Compilation_unit of string
   | Module of string
   | Anonymous_module of int * int * string option
   | Class of string
@@ -180,6 +183,7 @@ and encode_split_parts str raw escaped ins_pos i = function
 let mangle_path_item buf path_item =
   let output tag sym = Printf.bprintf buf "%s%a" tag encode sym in
   match path_item with
+  | Compilation_unit sym -> output tag_compilation_unit sym
   | Module sym -> output tag_module sym
   | Anonymous_module (line, col, file_opt) ->
     let file_name = Option.value ~default:"" file_opt in
@@ -203,7 +207,7 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
   let instance_separator_depth_char = '_' in
   Compilation_unit.full_path_with_arguments_as_strings ~instance_separator
     ~instance_separator_depth_char cu
-  |> List.map (fun x -> Module x)
+  |> List.map (fun x -> Compilation_unit x)
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   let b = Buffer.create 10 in
