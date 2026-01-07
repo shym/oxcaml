@@ -852,8 +852,10 @@ module Code_id = struct
         let path =
           Debuginfo.to_structured_mangling_path ~fallback_name:name debug
         in
-        Symbol0.for_structured_mangling_path ~compilation_unit ~path ~suffix
-        |> Symbol0.linkage_name
+        (* Note: Compilation unit no longer separated from the rest of the
+           mangled name via the separator in this mangling scheme. *)
+        Structured_mangling.mangle_ident compilation_unit path ^ suffix
+        |> Linkage_name.of_string
     in
     let data : Code_id_data.t =
       { compilation_unit; name; debug_info = debug; linkage_name }
