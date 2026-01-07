@@ -210,8 +210,21 @@ let path_from_comp_unit (cu : Compilation_unit.t) : path =
   |> List.map (fun x -> Compilation_unit x)
 
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
+  let rec deduplicate full_path cu_path path =
+    match cu_path, path with
+    | [], _ -> path
+    | cu_pi :: cu_path, pi :: path when cu_pi = pi ->
+      deduplicate full_path cu_path path
+    | _ -> full_path
+  in
   let b = Buffer.create 10 in
   Buffer.add_string b ocaml_prefix;
-  mangle_path b (path_from_comp_unit cu);
+  let cu_path = path_from_comp_unit cu in
+  let path =
+    List.map
+      (function Compilation_unit m -> Module m | x -> x)
+      (deduplicate path cu_path path)
+  in
+  mangle_path b cu_path;
   mangle_path b path;
   Buffer.contents b
