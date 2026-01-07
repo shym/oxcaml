@@ -46,7 +46,7 @@ module Scoped_location = struct
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string; name : string; prev: scopes;
                assume_zero_alloc: ZA.Assume_info.t;
-               mangling_item: Structured_mangling.path_item option}
+               mangling_path: Structured_mangling.path}
 
   let str = function
     | Empty -> ""
@@ -56,9 +56,9 @@ module Scoped_location = struct
     | Empty -> "(fun)"
     | Cons r -> r.str_fun
 
-  let cons scopes item str name mangling_item ~assume_zero_alloc =
+  let cons scopes item str name mangling_path ~assume_zero_alloc =
     Cons {item; str; str_fun = str ^ ".(fun)"; name; prev = scopes;
-          assume_zero_alloc; mangling_item}
+          assume_zero_alloc; mangling_path}
 
   let empty_scopes = Empty
 
@@ -83,31 +83,30 @@ module Scoped_location = struct
     let str = str_fun scopes in
     let (file, line, col) = Location.get_pos_info loc.loc_start in
     let file = Filename.basename file in
-    let mangling_item : Structured_mangling.path_item option =
-      Some (Anonymous_function (line, col, Some file))
+    let mangling_path : Structured_mangling.path =
+      [Anonymous_function (line, col, Some file)]
     in
     Cons {item = Sc_anonymous_function; str; str_fun = str; name = ""; prev = scopes;
-          assume_zero_alloc; mangling_item }
+          assume_zero_alloc; mangling_path }
 
   let enter_anonymous_module ~scopes ~loc =
     let str = str scopes in
     let (file, line, col) = Location.get_pos_info loc.loc_start in
     let file = Filename.basename file in
-    let mangling_item : Structured_mangling.path_item option =
-      Some (Anonymous_module (line, col, Some file))
+    let mangling_path : Structured_mangling.path =
+      [Anonymous_module (line, col, Some file)]
     in
     Cons {item = Sc_module_definition; str; str_fun = str ^ ".(fun)"; name = "";
           prev = scopes; assume_zero_alloc = ZA.Assume_info.none;
-          mangling_item }
+          mangling_path }
 
   let enter_value_definition ~scopes ~assume_zero_alloc id =
     cons scopes Sc_value_definition (dot scopes (Ident.name id)) (Ident.name id)
-      (Some (Function (Ident.name id)))
-      ~assume_zero_alloc
+      [Function (Ident.name id)] ~assume_zero_alloc
 
   let enter_compilation_unit ~scopes cu =
     let name = Compilation_unit.name_as_string cu in
-    cons scopes Sc_module_definition (dot scopes name) name None
+    cons scopes Sc_module_definition (dot scopes name) name []
       ~assume_zero_alloc:ZA.Assume_info.none
     (* [None]: note that no mangling item is added when entering a
        compilation unit as the compilation unit part is handled
@@ -115,12 +114,12 @@ module Scoped_location = struct
 
   let enter_module_definition ~scopes id =
     let name = Ident.name id in
-    cons scopes Sc_module_definition (dot scopes name) name (Some (Module name))
+    cons scopes Sc_module_definition (dot scopes name) name [Module name]
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_class_definition ~scopes id =
     let name = Ident.name id in
-    cons scopes Sc_class_definition (dot scopes name) name (Some (Class name))
+    cons scopes Sc_class_definition (dot scopes name) name [Class name]
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_method_definition ~scopes (s : Asttypes.label) =
@@ -130,14 +129,14 @@ module Scoped_location = struct
       | _ -> dot scopes s
     in
     cons scopes Sc_method_definition str s
-      ~assume_zero_alloc:ZA.Assume_info.none (Some (Function str))
+      ~assume_zero_alloc:ZA.Assume_info.none [Function str]
 
   let enter_lazy ~scopes = cons scopes Sc_lazy (str scopes) ""
-                             ~assume_zero_alloc:ZA.Assume_info.none None
+                             ~assume_zero_alloc:ZA.Assume_info.none []
 
   let enter_partial_or_eta_wrapper ~scopes =
     cons scopes Sc_partial_or_eta_wrapper (dot ~no_parens:() scopes "(partial)") ""
-      ~assume_zero_alloc:ZA.Assume_info.none (Some Partial_function)
+      ~assume_zero_alloc:ZA.Assume_info.none [Partial_function]
 
   let update_assume_zero_alloc ~scopes ~assume_zero_alloc =
     match scopes with
@@ -448,9 +447,9 @@ let get_dbg t = t.dbg
 let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   match scopes with
   | Empty -> acc
-  | Cons { prev; mangling_item = None; _ } -> path_of_debug_info_scopes acc prev
-  | Cons { prev; mangling_item = Some mangling_item; _ } ->
-    path_of_debug_info_scopes (mangling_item :: acc) prev
+  | Cons { prev; mangling_path = []; _ } -> path_of_debug_info_scopes acc prev
+  | Cons { prev; mangling_path; _ } ->
+    path_of_debug_info_scopes (mangling_path @ acc) prev
 
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
