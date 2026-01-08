@@ -133,9 +133,10 @@ module Scoped_location = struct
                              ~assume_zero_alloc:ZA.Assume_info.none []
 
   let enter_partial_or_eta_wrapper ~scopes ~loc =
-    ignore loc; (* CR sspies: [loc] will be used in subsequent PRs. *)
+    let (file, line, col) = Location.get_pos_info loc.loc_start in
+    let file = Filename.basename file in
     cons scopes Sc_partial_or_eta_wrapper (dot ~no_parens:() scopes "(partial)") ""
-      ~assume_zero_alloc:ZA.Assume_info.none [Partial_function]
+      ~assume_zero_alloc:ZA.Assume_info.none [Partial_function (line, col, Some file)]
 
   let update_assume_zero_alloc ~scopes ~assume_zero_alloc =
     match scopes with
