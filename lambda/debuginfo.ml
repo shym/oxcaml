@@ -456,26 +456,57 @@ let log = open_out_gen [Open_creat;Open_wronly;Open_append] 0o644 "/tmp/log"
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
   match to_items dbg with
   | [] ->
-      Printf.fprintf log "Fallback: %s %s\n\n"
-        (Global_module.Name.to_string
-          (Compilation_unit.to_global_name_exn
+    Printf.fprintf log "Fallback: %s %s\n\n"
+      (Global_module.Name.to_string
+         (Compilation_unit.to_global_name_exn
             (Compilation_unit.get_current_exn ())))
-        fallback_name;
-      [Function fallback_name]
+      fallback_name;
+    [Function fallback_name]
   | [item] ->
-      let compilation_unit = Compilation_unit.get_current_exn () in
-      let path = path_of_debug_info_scopes [] item.dinfo_scopes in
+    let compilation_unit = Compilation_unit.get_current_exn () in
+    let path = path_of_debug_info_scopes [] item.dinfo_scopes in
+    let rec last = function
+      | [] -> assert false
+      | [x] -> x
+      | _ :: xs -> last xs
+    in
+    let base = last path in
+    let rec drop_digits name i =
+      if i >= 0 && match name.[i] with '0' .. '9' -> true | _ -> false
+      then drop_digits name (i - 1)
+      else i
+    in
+    let drop_suffix name =
+      let last_non_digit = drop_digits name (String.length name - 1) in
+      if last_non_digit >= 0
+         && match name.[last_non_digit] with '_' -> true | _ -> false
+      then String.sub name 0 last_non_digit
+      else name
+    in
+    let base_fallback = drop_suffix fallback_name in
+    (if match base with
+        | Structured_mangling.Function f when String.equal base_fallback f ->
+          false
+        | Anonymous_function _ when String.equal base_fallback "BLIBLI" -> false
+        | _ -> true
+    then
       let mangled = Structured_mangling.mangle_ident compilation_unit path in
-      Printf.fprintf log "%s with fallback %s\n" mangled fallback_name;
-      path
-  | (item :: _) as multi ->
-      let compilation_unit = Compilation_unit.get_current_exn () in
-      Printf.fprintf log "%s =\n" (Dbg.to_string multi);
-      List.iter (fun item ->
+      Printf.fprintf log "%s ≠ %s (%s)\n" fallback_name
+        (match base with
+        | Structured_mangling.Function f -> f
+        | _ -> "NotFunction")
+        mangled);
+    path
+  | item :: _ as multi ->
+    let compilation_unit = Compilation_unit.get_current_exn () in
+    Printf.fprintf log "%s =\n" (Dbg.to_string multi);
+    List.iter
+      (fun item ->
         let path = path_of_debug_info_scopes [] item.dinfo_scopes in
         let mangled = Structured_mangling.mangle_ident compilation_unit path in
-        Printf.fprintf log "%s\n" mangled) multi;
-      Printf.fprintf log "with fallback: %s\n\n" fallback_name;
-      path_of_debug_info_scopes [] item.dinfo_scopes
-  (* CR spies: This should be looked at again.
-    How can we have multiple debug entries here? *)
+        Printf.fprintf log "%s\n" mangled)
+      multi;
+    Printf.fprintf log "with fallback: %s\n\n" fallback_name;
+    path_of_debug_info_scopes [] item.dinfo_scopes
+(* CR spies: This should be looked at again.
+   How can we have multiple debug entries here? *)
