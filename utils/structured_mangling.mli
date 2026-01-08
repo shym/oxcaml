@@ -35,7 +35,7 @@ type path_item =
   | Class of string
   | Function of string
   | Anonymous_function of int * int * string option
-  | Partial_function
+  | Partial_function of int * int * string option
 
 type path = path_item list
 

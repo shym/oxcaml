@@ -51,7 +51,7 @@ type path_item =
   | Class of string
   | Function of string
   | Anonymous_function of int * int * string option
-  | Partial_function
+  | Partial_function of int * int * string option
 
 type path = path_item list
 
@@ -182,20 +182,22 @@ and encode_split_parts str raw escaped ins_pos i = function
 
 let mangle_path_item buf path_item =
   let output tag sym = Printf.bprintf buf "%s%a" tag encode sym in
+  let output_loc ~line ~col ~file_opt tag =
+    let file_name = Option.value ~default:"" file_opt in
+    let ts = Printf.sprintf "%s_%d_%d" file_name line col in
+    output tag ts
+  in
   match path_item with
   | Compilation_unit sym -> output tag_compilation_unit sym
   | Module sym -> output tag_module sym
   | Anonymous_module (line, col, file_opt) ->
-    let file_name = Option.value ~default:"" file_opt in
-    let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    output tag_anonymous_module ts
+    output_loc ~line ~col ~file_opt tag_anonymous_module
   | Class sym -> output tag_class sym
   | Function sym -> output tag_function sym
   | Anonymous_function (line, col, file_opt) ->
-    let file_name = Option.value ~default:"" file_opt in
-    let ts = Printf.sprintf "%s_%d_%d" file_name line col in
-    output tag_anonymous_function ts
-  | Partial_function -> Printf.bprintf buf "%s" tag_partial_function
+    output_loc ~line ~col ~file_opt tag_anonymous_function
+  | Partial_function (line, col, file_opt) ->
+    output_loc ~line ~col ~file_opt tag_partial_function
 
 let mangle_path buf path =
   List.iter (fun pi -> Printf.bprintf buf "%a" mangle_path_item pi) path

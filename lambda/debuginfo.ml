@@ -132,9 +132,11 @@ module Scoped_location = struct
   let enter_lazy ~scopes = cons scopes Sc_lazy (str scopes) ""
                              ~assume_zero_alloc:ZA.Assume_info.none []
 
-  let enter_partial_or_eta_wrapper ~scopes =
+  let enter_partial_or_eta_wrapper ~scopes ~loc =
+    let (file, line, col) = Location.get_pos_info loc.loc_start in
+    let file = Filename.basename file in
     cons scopes Sc_partial_or_eta_wrapper (dot ~no_parens:() scopes "(partial)") ""
-      ~assume_zero_alloc:ZA.Assume_info.none [Partial_function]
+      ~assume_zero_alloc:ZA.Assume_info.none [Partial_function (line, col, Some file)]
 
   let update_assume_zero_alloc ~scopes ~assume_zero_alloc =
     match scopes with
@@ -212,7 +214,7 @@ module Scoped_location = struct
   let map_scopes f t =
     match t with
     | Loc_unknown -> Loc_unknown
-    | Loc_known { loc; scopes } -> Loc_known { loc; scopes = f ~scopes }
+    | Loc_known { loc; scopes } -> Loc_known { loc; scopes = f ~scopes ~loc }
 end
 
 type item = {
