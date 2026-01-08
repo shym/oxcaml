@@ -132,7 +132,8 @@ module Scoped_location = struct
   let enter_lazy ~scopes = cons scopes Sc_lazy (str scopes) ""
                              ~assume_zero_alloc:ZA.Assume_info.none []
 
-  let enter_partial_or_eta_wrapper ~scopes =
+  let enter_partial_or_eta_wrapper ~scopes ~loc =
+    ignore loc; (* CR sspies: [loc] will be used in subsequent PRs. *)
     cons scopes Sc_partial_or_eta_wrapper (dot ~no_parens:() scopes "(partial)") ""
       ~assume_zero_alloc:ZA.Assume_info.none [Partial_function]
 
@@ -212,7 +213,7 @@ module Scoped_location = struct
   let map_scopes f t =
     match t with
     | Loc_unknown -> Loc_unknown
-    | Loc_known { loc; scopes } -> Loc_known { loc; scopes = f ~scopes }
+    | Loc_known { loc; scopes } -> Loc_known { loc; scopes = f ~scopes ~loc }
 end
 
 type item = {
