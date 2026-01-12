@@ -234,6 +234,7 @@ let mangle_ident (cu : Compilation_unit.t) (path : path) =
     | Compilation_unit cu' :: path when Compilation_unit.equal cu cu' -> path
     | Compilation_unit _ :: _ -> Inline_marker :: path
     | _ -> path)
+    (* FTR, occurrences # for the compiler itself: 117996, 38660 and 1008 *)
   in
   let b = Buffer.create 10 in
   Buffer.add_string b ocaml_prefix;
