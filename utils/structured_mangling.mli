@@ -53,7 +53,9 @@
 
 (** A path item represents a single lexical scope in the mangling path. *)
 type path_item =
-  | Compilation_unit of string  (** A compilation unit (file) *)
+  | Compilation_unit of Compilation_unit.t  (** A compilation unit (file) *)
+  | Inline_marker
+      (** A separator (between destination and source) to track inlining *)
   | Module of string  (** A named module *)
   | Anonymous_module of int * int * string option
       (** [struct ... end] at (line, col, file) *)
@@ -67,9 +69,6 @@ type path_item =
 (** A mangling path is a list of path items representing the full lexical
     context of an identifier. *)
 type path = path_item list
-
-(** Construct a mangling path from a compilation unit. *)
-val path_from_comp_unit : Compilation_unit.t -> path
 
 (** Transform a {!Compilation_unit.t} and a {!path} into a mangled name suitable
     for creating a {!LinkageName.t} *)

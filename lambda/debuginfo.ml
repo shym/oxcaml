@@ -107,7 +107,8 @@ module Scoped_location = struct
 
   let enter_compilation_unit ~scopes cu =
     let name = Compilation_unit.name_as_string cu in
-    cons scopes Sc_module_definition (dot scopes name) name None
+    cons scopes Sc_module_definition (dot scopes name) name
+      (Some (Compilation_unit cu))
       ~assume_zero_alloc:ZA.Assume_info.none
 
   let enter_module_definition ~scopes id =

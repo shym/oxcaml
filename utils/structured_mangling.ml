@@ -168,6 +168,8 @@ let ocaml_prefix = "_Caml"
 
 let tag_compilation_unit = "U"
 
+let tag_inline_marker = "I"
+
 let tag_module = "M"
 
 let tag_anonymous_module = "S" (* struct *)
@@ -181,7 +183,8 @@ let tag_anonymous_function = "L" (* lambda *)
 let tag_partial_function = "P"
 
 type path_item =
-  | Compilation_unit of string
+  | Compilation_unit of Compilation_unit.t
+  | Inline_marker
   | Module of string
   | Anonymous_module of int * int * string option
   | Class of string
@@ -199,7 +202,15 @@ let mangle_path_item buf path_item =
     tag_prefixed ~tag ts
   in
   match path_item with
-  | Compilation_unit sym -> tag_prefixed ~tag:tag_compilation_unit sym
+  | Compilation_unit cu ->
+    (* CR sspies: Use the Flat mangling scheme for parameterised libraries for
+       now, a Structured version is postponed to a future PR. *)
+    let instance_separator = "____" in
+    let instance_separator_depth_char = '_' in
+    Compilation_unit.full_path_with_arguments_as_strings ~instance_separator
+      ~instance_separator_depth_char cu
+    |> List.iter (tag_prefixed ~tag:tag_compilation_unit)
+  | Inline_marker -> Buffer.add_string buf tag_inline_marker
   | Module sym -> tag_prefixed ~tag:tag_module sym
   | Anonymous_module (line, col, file_opt) ->
     tag_prefixed_loc ~line ~col ~file_opt ~tag:tag_anonymous_module
@@ -213,33 +224,18 @@ let mangle_path_item buf path_item =
 let mangle_path buf path =
   List.iter (fun pi -> Printf.bprintf buf "%a" mangle_path_item pi) path
 
-let path_from_comp_unit (cu : Compilation_unit.t) : path =
-  (* CR sspies: Use the Flat mangling scheme for parameterised libraries for
-     now, a Structured version is postponed to a future PR. *)
-  let instance_separator = "____" in
-  let instance_separator_depth_char = '_' in
-  Compilation_unit.full_path_with_arguments_as_strings ~instance_separator
-    ~instance_separator_depth_char cu
-  |> List.map (fun x -> Compilation_unit x)
-
 let mangle_ident (cu : Compilation_unit.t) (path : path) =
   (* Remove the common prefix between the compilation unit path and the
      identifier path to avoid redundant repetition in the mangled name. *)
-  let rec deduplicate full_path cu_path path =
-    match cu_path, path with
-    | [], _ -> path
-    | cu_pi :: cu_path, pi :: path when cu_pi = pi ->
-      deduplicate full_path cu_path path
-    | _ -> full_path
+  let path =
+    Compilation_unit cu
+    ::
+    (match path with
+    | Compilation_unit cu' :: path when Compilation_unit.equal cu cu' -> path
+    | Compilation_unit _ :: _ -> Inline_marker :: path
+    | _ -> path)
   in
   let b = Buffer.create 10 in
   Buffer.add_string b ocaml_prefix;
-  let cu_path = path_from_comp_unit cu in
-  let path =
-    List.map
-      (function Compilation_unit m -> Module m | x -> x)
-      (deduplicate path cu_path path)
-  in
-  mangle_path b cu_path;
   mangle_path b path;
   Buffer.contents b
