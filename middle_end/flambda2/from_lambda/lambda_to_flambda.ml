@@ -55,8 +55,9 @@ let name_for_function (func : Lambda.lfunction) =
   match func.loc with
   | Loc_unknown -> "fn"
   | Loc_known { loc; _ } ->
-    if Flambda_features.Expert.shorten_symbol_names ()
-       || mangling_scheme_locates_anonymous_functions
+    if
+      Flambda_features.Expert.shorten_symbol_names ()
+      || mangling_scheme_locates_anonymous_functions
     then "fn"
     else Format.asprintf "fn[%a]" print_compact_location loc
 
