@@ -46,18 +46,11 @@ let print_compact_location ppf (loc : Location.t) =
     if startchar >= 0 then Format.fprintf ppf ",%i--%i" startchar endchar
 
 let name_for_function (func : Lambda.lfunction) =
-  (* Name anonymous functions by their source location, if known. Not necessary
-     for structured mangling, because it uses the debug info to generate more
-     informative names. *)
-  let mangling_scheme_locates_anonymous_functions =
-    match Config.name_mangling_version with Flat -> false | Structured -> true
-  in
+  (* Name anonymous functions by their source location, if known. *)
   match func.loc with
   | Loc_unknown -> "fn"
   | Loc_known { loc; _ } ->
-    if
-      Flambda_features.Expert.shorten_symbol_names ()
-      || mangling_scheme_locates_anonymous_functions
+    if Flambda_features.Expert.shorten_symbol_names ()
     then "fn"
     else Format.asprintf "fn[%a]" print_compact_location loc
 
