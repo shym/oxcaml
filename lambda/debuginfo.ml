@@ -454,8 +454,21 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
     path_of_debug_info_scopes (mangling_item :: acc) prev
 
 let to_structured_mangling_path ~fallback_name dbg : Structured_mangling.path =
-  match to_items dbg with
-  | [] -> [Function fallback_name]
-  | item :: _ -> path_of_debug_info_scopes [] item.dinfo_scopes
-  (* CR spies: This should be looked at again.
-    How can we have multiple debug entries here? *)
+  (* Ensure the path finishes with the [fallback_name], dropping the last item
+     if it's a (anonymous or named) function, as it should be redundant with the
+     [fallback_name] (otherwise some debug information is missing) *)
+  let[@tail_mod_cons] rec force_last_fallback : Structured_mangling.path ->
+    Structured_mangling.path = function
+    | []
+    | [Function _]
+    | [Anonymous_function _] ->
+      [Function fallback_name]
+    | item :: path -> item :: force_last_fallback path
+  in
+  force_last_fallback
+    (match to_items dbg with
+    | [] -> []
+    | item :: _ ->
+      path_of_debug_info_scopes [] item.dinfo_scopes
+      (* CR spies: This should be looked at again.
+         How can we have multiple debug entries here? *))
