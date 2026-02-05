@@ -453,6 +453,8 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   | Cons { prev; mangling_item = Some mangling_item; _ } ->
     path_of_debug_info_scopes (mangling_item :: acc) prev
 
+let log = open_out_gen [Open_creat; Open_wronly; Open_append] 0o644 "/tmp/log"
+
 let to_structured_mangling_path ~name dbg : Structured_mangling.path =
   (* We ensure the path ends with [name] to preserve all stamps that the name
      includes. To do so, we drop the suffix of partial applications if there is
@@ -475,6 +477,54 @@ let to_structured_mangling_path ~name dbg : Structured_mangling.path =
          the function. See #5099. *)
       path_of_debug_info_scopes [] item.dinfo_scopes
   in
-  Structured_mangling.Function name
-  :: drop_partials_and_last_function (List.rev path_from_debug)
-  |> List.rev
+  let res =
+    Structured_mangling.Function name
+    :: drop_partials_and_last_function (List.rev path_from_debug)
+    |> List.rev
+  and items = to_items dbg
+  and compilation_unit = Compilation_unit.get_current_or_dummy () in
+  let base = String.sub name 0 (String.rindex name '_')
+  and some_eq = ref None in
+  let rec last_mangling = function
+    | Scoped_location.Cons { mangling_item = Some x; _ } -> Some x
+    | Scoped_location.Cons { mangling_item = None; prev; _ } ->
+      last_mangling prev
+    | _ -> None
+  in
+  Printf.fprintf log "%d => %s\n" (List.length items)
+    (Structured_mangling.mangle_ident compilation_unit res);
+  List.iteri
+    (fun i it ->
+      Printf.fprintf log "%s %s\n"
+        (Structured_mangling.mangle_ident compilation_unit
+           (path_of_debug_info_scopes [] it.dinfo_scopes))
+        (match last_mangling it.dinfo_scopes with
+        | Some (Function f) ->
+          if String.equal f base
+          then (
+            some_eq := Some (Printf.sprintf "=f%d" i);
+            "=")
+          else "<>"
+        | Some (Partial_function _) | Some (Anonymous_function _) ->
+          if String.equal base "fn"
+          then (
+            some_eq := Some (Printf.sprintf "=a%d" i);
+            "=")
+          else
+            (* test for _inner, partial_, _dps, equal, compare, hash *)
+            "<>"
+        | _ -> ""))
+    items;
+  Printf.fprintf log "~name: %s %s\n\n%!" name
+    (Option.value
+       ~default:
+         (match items with
+         | [] -> "0≠"
+         | it :: _ -> (
+           "≠"
+           ^
+           match last_mangling it.dinfo_scopes with
+           | Some (Function f) -> " " ^ f
+           | _ -> ""))
+       !some_eq);
+  res
