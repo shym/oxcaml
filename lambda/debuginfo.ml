@@ -525,6 +525,8 @@ let to_structured_mangling_path ~name dbg : Structured_mangling.path =
            ^
            match last_mangling it.dinfo_scopes with
            | Some (Function f) -> " " ^ f
+           | Some (Partial_function _) -> " PARTIAL"
+           | Some (Anonymous_function _) -> " ANONYMOUS"
            | _ -> ""))
        !some_eq);
   res

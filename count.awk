@@ -20,10 +20,12 @@ $1 == "~name:" {
     if (base == "_timestamp_partial") { base = "" }
   }
   if ($3 == "≠") {
-    if ("partial_" $4 == base) { name["partial " nb_items] += 1 }
-    if ($4 "_timestamp_partial" == base) { name["ts_partial " nb_items] += 1 }
-    if ($4 "_dps" == base) { name["dps " nb_items] += 1 }
-    if ($4 "_inner" == base) { name["inner " nb_items] += 1 }
+    if ("partial_" $4 == base) { name["≠ partial " nb_items] += 1 }
+    if ($4 "_timestamp_partial" == base) { name["≠ ts_partial " nb_items] += 1 }
+    if ($4 "_dps" == base) { name["≠ dps " nb_items] += 1 }
+    if ($4 "_inner" == base) { name["≠ inner " nb_items] += 1 }
+    if ($4 == "PARTIAL") { name["≠ PARTIAL " nb_items] += 1 }
+    if ($4 == "ANONYMOUS") { name["≠ ANONYMOUS " nb_items] += 1 }
   }
   if ($3 == "0≠") {
     basenodbg[base] += 1
@@ -32,19 +34,25 @@ $1 == "~name:" {
 
 END {
   all = 0
+  printf("| # items | occurrences |\n")
+  printf("| ------: | ----------: |\n")
   for(i in items) {
     all += items[i]
-    printf("%d:   % 7d\n", i, items[i])
+    printf("| % 7d |   % 9d |\n", i, items[i])
   }
-  printf("all: % 7d\n\n", all)
+  printf("|     all |   % 9d |\n\n", all)
 
+  printf("| category             | occurrences |\n")
+  printf("| :------------------- | ----------: |\n")
   for(n in name) {
-    printf("%20s: % 7d\n", n, name[n])
+    printf("| %20s | % 11d |\n", n, name[n])
   }
 
   printf("\n")
 
+  printf("| function name (no debug info)            | occurrences |\n")
+  printf("| :--------------------------------------- | ----------: |\n")
   for(sym in basenodbg) {
-    printf("%40s: % 7d\n", sym, basenodbg[sym])
+    printf("| %40s | % 11d |\n", sym, basenodbg[sym])
   }
 }
