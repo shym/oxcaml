@@ -7,58 +7,27 @@ function check_suffix(base, n, sfx) {
   return ""
 }
 
+$2 == "=>" {
+  items[$1] += 1
+  nb_items = $1
+}
+
 $1 == "~name:" {
   name[$3] += 1
   base = substr($2, 1, match($2, /_[[:digit:]]*$/)-1)
   if (base == "") {
     base = substr($2, 1, match($2, /_[[:digit:]]*_partial$/)-1) "_timestamp_partial"
+    if (base == "_timestamp_partial") { base = "" }
   }
-  if (base == "") {
-    name["notimestamp " $3] += 1
-    base = $2
+  if ($3 == "≠") {
+    if ("partial_" $4 == base) { name["partial " nb_items] += 1 }
+    if ($4 "_timestamp_partial" == base) { name["ts_partial " nb_items] += 1 }
+    if ($4 "_dps" == base) { name["dps " nb_items] += 1 }
+    if ($4 "_inner" == base) { name["inner " nb_items] += 1 }
   }
-  if (base == $4) { name["EQ " $3] += 1 }
-  else {
-    switch (base) {
-    case "fn":
-      name["fn " $3] += 1
-      break
-    case "equal":
-      name["equal " $3] += 1
-      break
-    case "compare":
-      name["compare " $3] += 1
-      break
-    case "hash":
-      name["hash " $3] += 1
-      break
-    case /_dps$/:
-      name[check_suffix(base, $4, "dps") "dps " $3] += 1
-      break
-    case /_inner$/:
-      name[check_suffix(base, $4, "inner") "inner " $3] += 1
-      break
-    case /_timestamp_partial$/:
-      name[check_suffix(base, $4, "timestamp_partial") "ts_partial " $3] += 1
-      break
-    case /_partial$/:
-      name[check_suffix(base, $4, "partial") "_partial " $3] += 1
-      break
-    case /_init$/:
-      name[check_suffix(base, $4, "init") "init " $3] += 1
-      print "INIT: " $0
-      break
-    case /^partial_/:
-      name[check_prefix(base, $4, "partial") "partial " $3] += 1
-      break
-    default:
-      name["else " $3] += 1
-    }
+  if ($3 == "0≠") {
+    basenodbg[base] += 1
   }
-}
-
-$2 == "=>" {
-  items[$1] += 1
 }
 
 END {
@@ -71,5 +40,11 @@ END {
 
   for(n in name) {
     printf("%20s: % 7d\n", n, name[n])
+  }
+
+  printf("\n")
+
+  for(sym in basenodbg) {
+    printf("%40s: % 7d\n", sym, basenodbg[sym])
   }
 }
