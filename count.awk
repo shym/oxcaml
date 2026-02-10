@@ -25,14 +25,21 @@ $1 == "~name:" {
     else { if ($4 "_timestamp_partial" == base) { name["≠ ts_partial"] += 1 }
     else { if ($4 "_dps" == base) { name["≠ dps"] += 1 }
     else { if ($4 "_inner" == base) { name["≠ inner"] += 1 }
-    else { if ($5 != "") {
-      switch ($5) {
-        case "Anonymous_function":
-        case "Partial_function":
-        case "Function":
-          print
+    else {
+      switch (base) {
+        case /_timestamp_partial$/:
+          name["≠≠ `" $5 "` `<timestamp>_partial` suffix "] += 1
+          break
+        case /^fn$/:
+          name["≠≠ `" $5 "` `fn`"] += 1
+          break
+        case /^partial_/:
+          name["≠≠ `" $5 "` `partial` prefix"] += 1
+          break
+        default:
+          name["≠≠ `" $5 "`"] += 1
       }
-      name["≠ " $5] += 1 } } } } } }
+    }}}}}
   }
   if ($3 == "0≠") {
     basenodbg[base] += 1
@@ -49,11 +56,11 @@ END {
   }
   printf("|     all |   % 9d |\n\n", all)
 
-  printf("| category             | occurrences |\n")
-  printf("| :------------------- | ----------: |\n")
+  printf("| category                                 | occurrences |\n")
+  printf("| :--------------------------------------- | ----------: |\n")
   asorti(name, idxs)
   for(i in idxs) {
-    printf("| %20s | % 11d |\n", idxs[i], name[idxs[i]])
+    printf("| %40s | % 11d |\n", idxs[i], name[idxs[i]])
   }
 
   printf("\n")
