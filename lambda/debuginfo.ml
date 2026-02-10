@@ -491,6 +491,11 @@ let to_structured_mangling_path ~name dbg : Structured_mangling.path =
       last_mangling prev
     | _ -> None
   in
+  let rec last_fun = function
+    | Scoped_location.Cons { mangling_item = Some (Function f); _ } -> Some f
+    | Scoped_location.Cons { prev; _ } -> last_fun prev
+    | _ -> None
+  in
   Printf.fprintf log "%d => %s\n" (List.length items)
     (Structured_mangling.mangle_ident compilation_unit res);
   List.iteri
@@ -521,12 +526,18 @@ let to_structured_mangling_path ~name dbg : Structured_mangling.path =
          (match items with
          | [] -> "0≠"
          | it :: _ -> (
-           "≠"
+           "≠ "
+           ^ Option.value ~default:"_" (last_fun it.dinfo_scopes)
            ^
            match last_mangling it.dinfo_scopes with
-           | Some (Function f) -> " " ^ f
-           | Some (Partial_function _) -> " PARTIAL"
-           | Some (Anonymous_function _) -> " ANONYMOUS"
-           | _ -> ""))
+           | Some (Function _) -> " Function"
+           | Some (Partial_function _) -> " Partial_function"
+           | Some (Anonymous_function _) -> " Anonymous_function"
+           | Some (Compilation_unit _) -> " Compilation_unit"
+           | Some Inline_marker -> " Inline_marker"
+           | Some (Module _) -> " Module"
+           | Some (Anonymous_module _) -> " Anonymous_module"
+           | Some (Class _) -> " Class"
+           | None -> ""))
        !some_eq);
   res

@@ -20,12 +20,19 @@ $1 == "~name:" {
     if (base == "_timestamp_partial") { base = "" }
   }
   if ($3 == "≠") {
-    if ("partial_" $4 == base) { name["≠ partial " nb_items] += 1 }
-    if ($4 "_timestamp_partial" == base) { name["≠ ts_partial " nb_items] += 1 }
-    if ($4 "_dps" == base) { name["≠ dps " nb_items] += 1 }
-    if ($4 "_inner" == base) { name["≠ inner " nb_items] += 1 }
-    if ($4 == "PARTIAL") { name["≠ PARTIAL " nb_items] += 1 }
-    if ($4 == "ANONYMOUS") { name["≠ ANONYMOUS " nb_items] += 1 }
+    if ($4 == base) { name["≠ ="] += 1 }
+    else { if ("partial_" $4 == base) { name["≠ partial"] += 1 }
+    else { if ($4 "_timestamp_partial" == base) { name["≠ ts_partial"] += 1 }
+    else { if ($4 "_dps" == base) { name["≠ dps"] += 1 }
+    else { if ($4 "_inner" == base) { name["≠ inner"] += 1 }
+    else { if ($5 != "") {
+      switch ($5) {
+        case "Anonymous_function":
+        case "Partial_function":
+        case "Function":
+          print
+      }
+      name["≠ " $5] += 1 } } } } } }
   }
   if ($3 == "0≠") {
     basenodbg[base] += 1
@@ -44,15 +51,17 @@ END {
 
   printf("| category             | occurrences |\n")
   printf("| :------------------- | ----------: |\n")
-  for(n in name) {
-    printf("| %20s | % 11d |\n", n, name[n])
+  asorti(name, idxs)
+  for(i in idxs) {
+    printf("| %20s | % 11d |\n", idxs[i], name[idxs[i]])
   }
 
   printf("\n")
 
   printf("| function name (no debug info)            | occurrences |\n")
   printf("| :--------------------------------------- | ----------: |\n")
-  for(sym in basenodbg) {
-    printf("| %40s | % 11d |\n", sym, basenodbg[sym])
+  asorti(basenodbg, idxs)
+  for(i in idxs) {
+    printf("| %40s | % 11d |\n", idxs[i], basenodbg[idxs[i]])
   }
 }
