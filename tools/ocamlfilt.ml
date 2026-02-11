@@ -40,8 +40,8 @@ let hex ?(with_upper = true) c =
   | 'A' .. 'F' when with_upper -> Char.code c - Char.code 'A' + 10
   | _ -> invalid_arg (Printf.sprintf "Cannot decode hexadecimal digit: %c" c)
 
-(* Runlength demangling implementation *)
-module RunLength = struct
+(* Structured name demangler *)
+module Structured = struct
   let decode_len str pos =
     let rec aux n =
       match str.[!pos] with
@@ -77,8 +77,8 @@ module RunLength = struct
         (try String.index sym '_' + 1
          with Not_found ->
            invalid_arg
-             (Printf.sprintf
-                "\"%s\" is not a valid component of a mangled name" sym))
+             (Printf.sprintf "\"%s\" is not a valid component of a mangled name"
+                sym))
     in
     let rec loop () =
       match decode_len sym enc_pos with
@@ -91,8 +91,7 @@ module RunLength = struct
         loop ()
       | None ->
         if !raw_pos < String.length sym
-        then
-          Buffer.add_substring res sym !raw_pos (String.length sym - !raw_pos)
+        then Buffer.add_substring res sym !raw_pos (String.length sym - !raw_pos)
     in
     loop ();
     Buffer.contents res
@@ -126,14 +125,14 @@ module RunLength = struct
         let encoded = String.sub str !pos len in
         pos := !pos + len;
         Some (decode encoded))
-      else (
+      else
         (* Plain identifier *)
         let id = String.sub str !pos len in
         pos := !pos + len;
-        Some id)
+        Some id
 
-  (* Format anonymous location from filename_line_col
-     to prefix(filename:line:col) *)
+  (* Format anonymous location from filename_line_col to
+     prefix(filename:line:col) *)
   let format_anonymous_location prefix loc =
     (* Find last two underscores *)
     let len = String.length loc in
@@ -141,23 +140,23 @@ module RunLength = struct
       if i < 0
       then first, second, count
       else if loc.[i] = '_'
-      then (
+      then
         match count with
         | 0 -> find_underscores (i - 1) 1 i second
         | 1 -> find_underscores (i - 1) 2 i first
-        | _ -> first, second, count)
+        | _ -> first, second, count
       else find_underscores (i - 1) count first second
     in
     let first, second, count = find_underscores (len - 1) 0 (-1) (-1) in
     if count >= 2
-    then (
+    then
       let filename = String.sub loc 0 first in
       let line = String.sub loc (first + 1) (second - first - 1) in
       let col = String.sub loc (second + 1) (len - second - 1) in
-      Printf.sprintf "%s(%s:%s:%s)" prefix filename line col)
+      Printf.sprintf "%s(%s:%s:%s)" prefix filename line col
     else loc
 
-  (* Unmangle runlength-encoded symbol *)
+  (* Unmangle structured runlength-encoded symbol *)
   let unmangle_exn sym =
     let err () =
       invalid_arg
@@ -165,8 +164,11 @@ module RunLength = struct
     in
     (* Skip platform-specific prefix (_ or __) *)
     let start_pos =
-      if String.length sym >= 3 && sym.[0] = '_' && sym.[1] = '_'
-         && sym.[2] = 'O'
+      if
+        String.length sym >= 3
+        && sym.[0] = '_'
+        && sym.[1] = '_'
+        && sym.[2] = 'O'
       then 3
       else if String.length sym >= 2 && sym.[0] = '_' && sym.[1] = 'O'
       then 2
@@ -179,24 +181,26 @@ module RunLength = struct
       let path_type = sym.[!pos] in
       incr pos;
       match path_type with
-      | 'M' | 'F' ->
+      | 'M' | 'F' -> (
         (* Module or NamedFunction *)
         if Buffer.length result > 0 then Buffer.add_char result '.';
-        (match decode_identifier sym pos with
-         | Some id -> Buffer.add_string result id
-         | None -> err ())
-      | 'L' ->
+        match decode_identifier sym pos with
+        | Some id -> Buffer.add_string result id
+        | None -> err ())
+      | 'L' -> (
         (* AnonymousFunction *)
         if Buffer.length result > 0 then Buffer.add_char result '.';
-        (match decode_identifier sym pos with
-         | Some loc -> Buffer.add_string result (format_anonymous_location "fn" loc)
-         | None -> err ())
-      | 'S' ->
+        match decode_identifier sym pos with
+        | Some loc ->
+          Buffer.add_string result (format_anonymous_location "fn" loc)
+        | None -> err ())
+      | 'S' -> (
         (* AnonymousModule *)
         if Buffer.length result > 0 then Buffer.add_char result '.';
-        (match decode_identifier sym pos with
-         | Some loc -> Buffer.add_string result (format_anonymous_location "mod" loc)
-         | None -> err ())
+        match decode_identifier sym pos with
+        | Some loc ->
+          Buffer.add_string result (format_anonymous_location "mod" loc)
+        | None -> err ())
       | 'P' ->
         (* PartialFunction - no dot separator *)
         Buffer.add_string result "(partially_applied)"
@@ -205,13 +209,12 @@ module RunLength = struct
     Buffer.contents result
 
   let unmangle sym =
-    try Some (unmangle_exn sym) with
-    | Invalid_argument _ -> None
+    try Some (unmangle_exn sym) with Invalid_argument _ -> None
 end
 
-(* OCaml 5.3/5.4 demangling *)
-module Classic_5_4 = struct
+module FlatCommon = struct
   let caml_prefix = "caml"
+
   let caml_prefix_len = 4
 
   let is_xdigit (c : char) =
@@ -220,20 +223,28 @@ module Classic_5_4 = struct
     else if Char.code c >= Char.code 'a' && Char.code c <= Char.code 'f'
     then true
     else Char.code c >= Char.code 'A' && Char.code c <= Char.code 'F'
+end
+
+(* OCaml 5.3/5.4 demangling *)
+module Flat1 = struct
+  open FlatCommon
 
   let unmangle str =
     if not (String.starts_with ~prefix:caml_prefix str)
     then None
-    else (
+    else
       let j = ref 0 in
       let i = ref caml_prefix_len in
       let len = String.length str in
       let result = Bytes.create len in
       try
         while !i < len do
-          if Char.equal str.[!i] '$' && Char.equal str.[!i + 1] '$'
-             && Char.equal str.[!i + 2] '$' && is_xdigit str.[!i + 3]
-             && is_xdigit str.[!i + 4]
+          if
+            Char.equal str.[!i] '$'
+            && Char.equal str.[!i + 1] '$'
+            && Char.equal str.[!i + 2] '$'
+            && is_xdigit str.[!i + 3]
+            && is_xdigit str.[!i + 4]
           then (
             (* "$$$xx" is a separator plus hex-encoded character *)
             let a = (hex str.[!i + 3] lsl 4) lor hex str.[!i + 4] in
@@ -244,8 +255,10 @@ module Classic_5_4 = struct
             j := !j + 1;
             i := !i + 5)
           else if
-            Char.equal str.[!i] '$' && Char.equal str.[!i + 1] '$'
-            && is_xdigit str.[!i + 2] && is_xdigit str.[!i + 3]
+            Char.equal str.[!i] '$'
+            && Char.equal str.[!i + 1] '$'
+            && is_xdigit str.[!i + 2]
+            && is_xdigit str.[!i + 3]
           then (
             (* "$$xx" is a separator plus hex-encoded character *)
             let a = (hex str.[!i + 2] lsl 4) lor hex str.[!i + 3] in
@@ -253,8 +266,10 @@ module Classic_5_4 = struct
             Bytes.set result !j a;
             j := !j + 1;
             i := !i + 4)
-          else if Char.equal str.[!i] '$' && is_digit str.[!i + 1]
-                  && is_digit str.[!i + 2]
+          else if
+            Char.equal str.[!i] '$'
+            && is_digit str.[!i + 1]
+            && is_digit str.[!i + 2]
           then (
             (* "$27" is a hex-encoded character *)
             let a = (hex str.[!i + 1] lsl 4) lor hex str.[!i + 2] in
@@ -280,26 +295,17 @@ module Classic_5_4 = struct
             i := !i + 1)
         done;
         Some (Bytes.extend result 0 (!j - len) |> Bytes.to_string)
-      with
-      | _ -> None)
+      with _ -> None
 end
 
-(* OCaml classic style demangling 5.2 and earlier. *)
-module Classic = struct
-  let caml_prefix = "caml"
-  let caml_prefix_len = 4
-
-  let is_xdigit (c : char) =
-    if is_digit c
-    then true
-    else if Char.code c >= Char.code 'a' && Char.code c <= Char.code 'f'
-    then true
-    else Char.code c >= Char.code 'A' && Char.code c <= Char.code 'F'
+(* OCaml flat0 style demangling 5.2 and earlier. *)
+module Flat0 = struct
+  open FlatCommon
 
   let unmangle str =
     if not (String.starts_with ~prefix:caml_prefix str)
     then None
-    else (
+    else
       let j = ref 0 in
       let i = ref caml_prefix_len in
       let len = String.length str in
@@ -313,7 +319,8 @@ module Classic = struct
             j := !j + 1;
             i := !i + 2)
           else if
-            Char.equal str.[!i] '$' && is_xdigit str.[!i + 1]
+            Char.equal str.[!i] '$'
+            && is_xdigit str.[!i + 1]
             && is_xdigit str.[!i + 2]
           then (
             (* "$xx" is a hex-encoded character *)
@@ -328,36 +335,36 @@ module Classic = struct
             i := !i + 1)
         done;
         Some (Bytes.extend result 0 (!j - len) |> Bytes.to_string)
-      with
-      | _ -> None)
+      with _ -> None
 end
 
 (* Auto-detect and demangle *)
 let auto_demangle str =
-  (* Try runlength first (most specific pattern) *)
-  if String.starts_with str ~prefix:"_O" || String.starts_with str ~prefix:"__O"
-  then RunLength.unmangle str
+  (* Try the structured scheme first (most specific pattern) *)
+  if String.starts_with str ~prefix:"_Caml" || String.starts_with str
+  ~prefix:"__Caml"
+  then Structured.unmangle str
   else if String.starts_with str ~prefix:"caml"
-  then (
-    (* Try classic 5.4 first, then classic *)
-    match Classic_5_4.unmangle str with
+  then
+    (* Try the flat scheme from 5.3-5.4 first, then the previously-used one *)
+    match Flat1.unmangle str with
     | Some _ as result -> result
-    | None -> Classic.unmangle str)
+    | None -> Flat0.unmangle str
   else None
 
 (* Main program *)
 type demangle_format =
   | Auto
-  | Classic
-  | Classic_5_4
-  | RunLength
+  | Flat0
+  | Flat1
+  | Structured
 
 let demangle_with_format format str =
   match format with
   | Auto -> auto_demangle str
-  | Classic -> Classic.unmangle str
-  | Classic_5_4 -> Classic_5_4.unmangle str
-  | RunLength -> RunLength.unmangle str
+  | Flat0 -> Flat0.unmangle str
+  | Flat1 -> Flat1.unmangle str
+  | Structured -> Structured.unmangle str
 
 let process_line format line =
   match demangle_with_format format line with
@@ -371,8 +378,7 @@ let rec process_stdin format () =
     process_stdin format ()
   | None -> ()
 
-let process_symbols format symbols =
-  List.iter (process_line format) symbols
+let process_symbols format symbols = List.iter (process_line format) symbols
 
 let main format symbols =
   let format = Option.value ~default:Auto format in
@@ -383,37 +389,42 @@ let main format symbols =
 (* Command line interface *)
 let usage_msg =
   "ocamlfilt - Demangles OCaml symbol names\n\
-   Usage: ocamlfilt [OPTIONS] [SYMBOLS...]\n\
-   \n\
+   Usage: ocamlfilt [OPTIONS] [SYMBOLS...]\n\n\
    If no symbols are provided, reads from standard input.\n"
 
 let format_ref = ref None
+
 let symbols_ref = ref []
 
 let rec specs =
-  [ ( "-format"
-    , Arg.String
+  [ ( "-format",
+      Arg.String
         (fun s ->
           format_ref
             := Some
                  (match s with
-                  | "auto" -> Auto
-                  | "classic" -> Classic
-                  | "classic_5_4" -> Classic_5_4
-                  | "run-length" -> RunLength
-                  | _ ->
-                    Printf.eprintf "Unknown format: %s\n" s;
-                    exit 2))
-    , "<format> Mangling format: auto, classic, classic_5_4, run-length \
-       (default: auto)" )
-  ; ( "-help"
-    , Arg.Unit (fun () -> Arg.usage specs usage_msg; exit 0)
-    , " Display this help message" )
-  ; ( "--help"
-    , Arg.Unit (fun () -> Arg.usage specs usage_msg; exit 0)
-    , " Display this help message" )
-  ]
+                 | "auto" -> Auto
+                 | "flat0" -> Flat0
+                 | "flat1" -> Flat1
+                 | "structured" -> Structured
+                 | _ ->
+                   Printf.eprintf "Unknown format: %s\n" s;
+                   exit 2)),
+      "<format> Mangling format: auto, flat0, flat1, structured \
+       (default: auto)" );
+    ( "-help",
+      Arg.Unit
+        (fun () ->
+          Arg.usage specs usage_msg;
+          exit 0),
+      " Display this help message" );
+    ( "--help",
+      Arg.Unit
+        (fun () ->
+          Arg.usage specs usage_msg;
+          exit 0),
+      " Display this help message" ) ]
 
 let () =
-  Arg.parse specs (fun s -> symbols_ref := !symbols_ref @ [ s ]) usage_msg;
+  Arg.parse specs (fun s -> symbols_ref := !symbols_ref @ [s]) usage_msg;
   main !format_ref !symbols_ref
