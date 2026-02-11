@@ -43,17 +43,14 @@ module Structured = struct
   (** {1 Identifier decoding} *)
 
   let unbase26 str pos =
-    let p = ref pos in
-    let rec aux n =
-      match str.[!p] with
-      | 'A' .. 'Z' as l ->
-        incr p;
-        aux ((n * 26) + (Char.code l - Char.code 'A'))
-      | _ -> n
+    let rec aux n p =
+      match str.[p] with
+      | 'A' .. 'Z' as l -> aux ((n * 26) + (Char.code l - Char.code 'A')) (p + 1)
+      | _ -> n, p - pos
     in
-    match str.[!p] with
+    match str.[pos] with
     | '_' -> None
-    | 'A' .. 'Z' -> Some (aux 0, !p - pos)
+    | 'A' .. 'Z' -> Some (aux 0 pos)
     | _ -> invalid_arg "No base26 number to decode"
 
   let unhex h1 h2 =
@@ -67,16 +64,14 @@ module Structured = struct
     Char.chr ((value h1 lsl 4) lor value h2)
 
   let unhexes buf str pos =
-    let p = ref pos in
-    let rec loop () =
-      match str.[!p] with
+    let rec loop i =
+      match str.[i] with
       | '0' .. '9' | 'a' .. 'f' ->
-        Buffer.add_char buf (unhex str.[!p] str.[!p + 1]);
-        incr_n p 2;
-        loop ()
-      | _ -> !p - pos
+        Buffer.add_char buf (unhex str.[i] str.[i + 1]);
+        loop (i + 2)
+      | _ -> i - pos
     in
-    loop ()
+    loop pos
 
   let undecimal str pos =
     let rec len pos' =
@@ -94,17 +89,16 @@ module Structured = struct
   let rec decode str pos =
     (* Check for escaping flag 'u' *)
     let is_escaped = pos < String.length str && str.[pos] = 'u' in
+    let flag_len = if is_escaped then (* 'u' *) 1 else 0 in
     (* Decode length *)
-    match undecimal str pos with
+    match undecimal str (pos + flag_len) with
     | None -> None
-    | Some (ident_len, len_len) ->
-      if ident_len <= 0 || pos + ident_len > String.length str
+    | Some (payload_len, len_len) ->
+      let full_len = flag_len + len_len + payload_len in
+      if payload_len <= 0 || pos + full_len > String.length str
       then None
       else
-        let chunk = String.sub str pos ident_len
-        and full_len =
-          (if is_escaped then (* 'u' *) 1 else 0) + len_len + ident_len
-        in
+        let chunk = String.sub str (pos + flag_len + len_len) payload_len in
         Some ((if is_escaped then decode_split_parts chunk else chunk), full_len)
 
   and decode_split_parts sym =
@@ -188,30 +182,39 @@ module Structured = struct
     let result = Buffer.create 64 in
     let add_sep buf = if Buffer.length buf > 0 then Buffer.add_char buf '.' in
     let pos = ref start_pos in
+    let decode_next () =
+      match decode sym !pos with
+      | None -> err ()
+      | Some (decoded, l) ->
+        incr_n pos l;
+        decoded
+    in
     (* Parse path items *)
     while !pos < String.length sym && sym.[!pos] <> '_' do
       let path_type = sym.[!pos] in
       incr pos;
       add_sep result;
-      match decode sym !pos with
-      | None -> err ()
-      | Some (decoded, l) -> (
-        incr_n pos l;
-        match path_type with
-        | 'U' | 'M' | 'O' | 'F' ->
-          (* Compilation_unit, Module, Class or Function: add the corresponding
-             identifier as is *)
-          Buffer.add_string result decoded
-        | 'L' ->
-          (* Anonymous_function *)
-          Buffer.add_string result (format_anonymous_location "fn" decoded)
-        | 'S' ->
-          (* Anonymous_module *)
-          Buffer.add_string result (format_anonymous_location "mod" decoded)
-        | 'P' ->
-          (* Partial_function *)
-          Buffer.add_string result (format_anonymous_location "partial" decoded)
-        | _ -> err ())
+      match path_type with
+      | 'U' | 'M' | 'O' | 'F' ->
+        (* Compilation_unit, Module, Class or Function: add the corresponding
+           identifier as is *)
+        Buffer.add_string result (decode_next ())
+      | 'L' ->
+        (* Anonymous_function *)
+        Buffer.add_string result
+          (format_anonymous_location "fn" (decode_next ()))
+      | 'S' ->
+        (* Anonymous_module *)
+        Buffer.add_string result
+          (format_anonymous_location "mod" (decode_next ()))
+      | 'P' ->
+        (* Partial_function *)
+        Buffer.add_string result
+          (format_anonymous_location "partial" (decode_next ()))
+      | 'I' ->
+        (* Inline_marker *)
+        Buffer.add_string result "<inlining>"
+      | _ -> err ()
     done;
     Buffer.contents result
 
@@ -383,23 +386,32 @@ let demangle_with_format format str =
 
 let process_line format line =
   match demangle_with_format format line with
-  | Some demangled -> print_endline demangled
-  | None -> ()
+  | Some demangled ->
+    print_endline demangled;
+    true
+  | None ->
+    Printf.eprintf "Failed to demangle: %s\n" line;
+    false
 
-let rec process_stdin format () =
-  match In_channel.input_line In_channel.stdin with
-  | Some line ->
-    process_line format line;
-    process_stdin format ()
-  | None -> ()
+let process_stdin format () =
+  let rec aux res =
+    match In_channel.input_line In_channel.stdin with
+    | Some line -> aux (process_line format line && res)
+    | None -> res
+  in
+  aux true
 
-let process_symbols format symbols = List.iter (process_line format) symbols
+let process_symbols format symbols =
+  List.fold_left (fun res sym -> process_line format sym && res) true symbols
 
 let main format symbols =
   let format = Option.value ~default:Auto format in
-  match symbols with
-  | [] -> process_stdin format ()
-  | symbols -> process_symbols format symbols
+  if
+    not
+      (match symbols with
+      | [] -> process_stdin format ()
+      | symbols -> process_symbols format symbols)
+  then exit 1
 
 (* Command line interface *)
 let usage_msg =
@@ -422,9 +434,7 @@ let specs =
                  | "flat0" -> Flat0
                  | "flat1" -> Flat1
                  | "structured" -> Structured
-                 | _ ->
-                   Printf.eprintf "Unknown format: %s\n" s;
-                   exit 2)),
+                 | _ -> raise (Arg.Bad (Printf.sprintf "unknown format: %s" s)))),
       "<format>  Mangling format: auto, flat0 (<= 5.2.1), flat1 (>= 5.3), \
        structured  (default: auto)" ) ]
 
