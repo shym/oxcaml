@@ -33,11 +33,12 @@
 (* Helper functions *)
 let is_digit = function '0' .. '9' -> true | _ -> false
 
-let hex c =
-  let c = Char.code c in
-  if c >= Char.code '0' && c <= Char.code '9' then c - Char.code '0'
-  else if c >= Char.code 'a' && c <= Char.code 'f' then c - Char.code 'a' + 10
-  else c - Char.code 'A' + 10
+let hex ?(with_upper = true) c =
+  match c with
+  | '0' .. '9' -> Char.code c - Char.code '0'
+  | 'a' .. 'f' -> Char.code c - Char.code 'a' + 10
+  | 'A' .. 'F' when with_upper -> Char.code c - Char.code 'A' + 10
+  | _ -> invalid_arg (Printf.sprintf "Cannot decode hexadecimal digit: %c" c)
 
 (* Runlength demangling implementation *)
 module RunLength = struct
@@ -55,12 +56,7 @@ module RunLength = struct
     | _ -> invalid_arg "No length to decode"
 
   let decode_char h1 h2 =
-    let value = function
-      | '0' .. '9' as c -> Char.code c - Char.code '0'
-      | 'a' .. 'f' as c -> Char.code c - Char.code 'a' + 10
-      | _ -> invalid_arg "Cannot decode hexdigit out of [0-9a-f]"
-    in
-    Char.chr ((value h1 lsl 4) lor value h2)
+    Char.chr ((hex ~with_upper:false h1 lsl 4) lor hex ~with_upper:false h2)
 
   let decode_chars buf str pos =
     let rec loop () =
