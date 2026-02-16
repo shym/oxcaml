@@ -1,0 +1,40 @@
+(rule
+ (alias runtest)
+ (action
+  (progn
+   (with-outputs-to
+    symbols.output
+    (pipe-outputs
+     (run %{bin:ocamlopt.opt} -dlinear -c %{dep:symbols.ml})
+     (run
+      sed
+      -E
+      -e
+      ; Keep only the lines with a symbol name
+      "/^[* ]/d"
+      -e
+      ; drop the location, if present
+      "s/ .*//"
+      -e
+      "s/:$//"
+      -e
+      ; Normalise result by hiding the stamp suffix
+      "s/_[0-9]+_[0-9]+_code$/_HIDE_STAMP/"
+      -e
+      ; Unfortunately, the first of the two number stamps is part of the last
+      ; component of the mangled name and so its _length_ is recorded as part of
+      ; the length of that component in the structured name-mangling scheme. As
+      ; we carefully excluded 'F' from names in the OCaml source, we can finally
+      ; normalise thus.
+      "s/F(u?)[0-9]+([^F]*)$/F\\1_HIDE_LENGTH_\\2/")))
+   (diff symbols.%{env:OXCAML_NAME_MANGLING=flat} symbols.output))))
+
+; Sanity check: $OXCAML_NAME_MANGLING should be set as the compiler was
+; configured
+
+(rule
+ (alias runtest)
+ (action
+  (pipe-outputs
+   (run %{bin:ocamlopt.opt} -config)
+   (run grep "name_mangling_version: %{env:OXCAML_NAME_MANGLING=flat}"))))
