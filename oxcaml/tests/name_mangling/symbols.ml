@@ -24,9 +24,16 @@ let shadow_fun () = shadow_fun () + 2
 
 let with_partially_applied_fun xs = List.map (( + ) 1) xs
 
+let lazy_value = lazy (1 + 2)
+
 let with_anonymous_fun xs = List.map (fun x -> x + 1) xs
 
 let with_another_anonymous_fun () = [(fun x -> x + 1)]
+
+let with_opt ?opt () =
+  match opt with None -> 12 | Some x -> x + 1
+
+let with_anonymous_with_opt xs = List.map (fun _ -> with_opt ()) xs
 
 module Module_A = struct
   let nested_fun x = x
@@ -61,3 +68,10 @@ end
 include Some_other_functor (struct
   let some_intf_fun x = x + 4
 end)
+
+class point =
+  object
+    val mutable x = 0
+    method get_x = x
+    method move d = x <- x + d
+  end
