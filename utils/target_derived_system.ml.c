@@ -19,8 +19,6 @@ type derived_system =
 #define netbsd() "netbsd" -> NetBSD
   | OpenBSD
 #define openbsd() "openbsd" -> OpenBSD
-  | Generic_BSD
-/* no occurrence */
   | Solaris
 #define solaris() "solaris" -> Solaris
   | Dragonfly
