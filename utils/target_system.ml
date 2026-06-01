@@ -60,11 +60,11 @@ let derived_system () : derived_system =
   match architecture (), Config.model, Config.system with
   (* Part generated from [configure.ac] by [target_system.sh] *)
   (* BEGIN target_system.sh *)
-  | AArch64, _, "freebsd" -> FreeBSD
-  | AArch64, _, "linux" -> Linux
-  | AArch64, _, "macosx" -> MacOS_like
-  | AArch64, _, "netbsd" -> NetBSD
-  | AArch64, _, "openbsd" -> OpenBSD
+  | AArch64, "default", "freebsd" -> FreeBSD
+  | AArch64, "default", "linux" -> Linux
+  | AArch64, "default", "macosx" -> MacOS_like
+  | AArch64, "default", "netbsd" -> NetBSD
+  | AArch64, "default", "openbsd" -> OpenBSD
   | ARM, "armv5", "linux" -> Linux
   | ARM, "armv5te", "linux" -> Linux
   | ARM, "armv6", "freebsd" -> FreeBSD
@@ -74,32 +74,32 @@ let derived_system () : derived_system =
   | ARM, "armv7", "linux" -> Linux
   | ARM, "armv7", "netbsd" -> NetBSD
   | ARM, "armv8", "linux" -> Linux
-  | ARM, _, "linux" -> Linux
-  | ARM, _, "openbsd" -> OpenBSD
-  | IA32, _, "beos" -> BeOS
-  | IA32, _, "cygwin" -> Cygwin
-  | IA32, _, "freebsd" -> FreeBSD
-  | IA32, _, "gnu" -> GNU
-  | IA32, _, "linux" -> Linux
-  | IA32, _, "mingw" -> MinGW_32
-  | IA32, _, "netbsd" -> NetBSD
-  | IA32, _, "openbsd" -> OpenBSD
-  | IA32, _, "win32" -> Win32
+  | ARM, "default", "linux" -> Linux
+  | ARM, "default", "openbsd" -> OpenBSD
+  | IA32, "default", "beos" -> BeOS
+  | IA32, "default", "cygwin" -> Cygwin
+  | IA32, "default", "freebsd" -> FreeBSD
+  | IA32, "default", "gnu" -> GNU
+  | IA32, "default", "linux" -> Linux
+  | IA32, "default", "mingw" -> MinGW_32
+  | IA32, "default", "netbsd" -> NetBSD
+  | IA32, "default", "openbsd" -> OpenBSD
+  | IA32, "default", "win32" -> Win32
   | POWER, "ppc64le", "linux" -> Linux
   | POWER, "ppc64", "linux" -> Linux
   | Riscv, "riscv64", "linux" -> Linux
-  | X86_64, _, "beos" -> BeOS
-  | X86_64, _, "cygwin" -> Cygwin
-  | X86_64, _, "dragonfly" -> Dragonfly
-  | X86_64, _, "freebsd" -> FreeBSD
-  | X86_64, _, "gnu" -> GNU
-  | X86_64, _, "linux" -> Linux
-  | X86_64, _, "macosx" -> MacOS_like
-  | X86_64, _, "mingw64" -> MinGW_64
-  | X86_64, _, "netbsd" -> NetBSD
-  | X86_64, _, "openbsd" -> OpenBSD
-  | X86_64, _, "solaris" -> Solaris
-  | X86_64, _, "win64" -> Win64
+  | X86_64, "default", "beos" -> BeOS
+  | X86_64, "default", "cygwin" -> Cygwin
+  | X86_64, "default", "dragonfly" -> Dragonfly
+  | X86_64, "default", "freebsd" -> FreeBSD
+  | X86_64, "default", "gnu" -> GNU
+  | X86_64, "default", "linux" -> Linux
+  | X86_64, "default", "macosx" -> MacOS_like
+  | X86_64, "default", "mingw64" -> MinGW_64
+  | X86_64, "default", "netbsd" -> NetBSD
+  | X86_64, "default", "openbsd" -> OpenBSD
+  | X86_64, "default", "solaris" -> Solaris
+  | X86_64, "default", "win64" -> Win64
   | Z, "z10", "linux" -> Linux
   (* END target_system.sh *)
   | _, _, "unknown" -> Unknown

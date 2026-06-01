@@ -4,7 +4,7 @@
 regexp='.*\<arch=([^;]*); (model=([^;]*); )?system=([^]]*)].*'
 
 sed -En 's/'"$regexp"'/\1, "\3", "\4" -> \4/p' configure.ac \
-  | sed -e 's/""/_/' \
+  | sed -e 's/""/"default"/' \
         -e 's/beos$/BeOS/' \
         -e 's/cygwin$/Cygwin/' \
         -e 's/dragonfly$/Dragonfly/' \
