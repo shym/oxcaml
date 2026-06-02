@@ -226,6 +226,8 @@ let mangle_path buf path = List.iter (mangle_path_item buf) path
 
 module Parsed = struct
   let is_digit = function '0' .. '9' -> true | _ -> false
+  (* CR shym Replace with Char.Ascii.is_digit when the transition to 5.4 is
+     complete *)
 
   let incr_n r n = r := !r + n
 

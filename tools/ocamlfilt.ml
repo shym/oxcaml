@@ -30,6 +30,9 @@
 
 (** OCaml symbol demangler - supports multiple mangling schemes *)
 
+(* CR shym Replace helper functions in this module with the equivalent versions
+   in [Char.Ascii] when the transition to 5.4 is complete *)
+
 (* Helper functions *)
 let is_digit = function '0' .. '9' -> true | _ -> false
 
