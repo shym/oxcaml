@@ -367,52 +367,47 @@ module Parsed = struct
   let starts_with_prefix sym = Option.is_some (matched_prefix_len sym)
 
   let parse sym =
-    match matched_prefix_len sym with
-    | None -> None
-    | Some start_pos -> (
-      let pos = ref start_pos in
-      let items = ref [] in
-      let parse_loc tag_constructor =
-        match decode sym !pos with
-        | None -> raise Exit
-        | Some (decoded, l) -> (
-          match parse_location decoded with
-          | None -> raise Exit
-          | Some (line, col, file_opt) ->
-            incr_n pos l;
-            items := tag_constructor (line, col, file_opt) :: !items)
-      in
-      let parse_named tag_constructor =
-        match decode sym !pos with
-        | None -> raise Exit
-        | Some (decoded, l) ->
-          incr_n pos l;
-          items := tag_constructor decoded :: !items
-      in
-      let len = String.length sym in
-      try
-        while !pos < len && sym.[!pos] <> '_' do
-          let tag = sym.[!pos] in
-          incr pos;
-          match tag with
-          | 'U' -> parse_named (fun s -> Compilation_unit s)
-          | 'M' -> parse_named (fun s -> Module s)
-          | 'O' -> parse_named (fun s -> Class s)
-          | 'F' -> parse_named (fun s -> Function s)
-          | 'L' -> parse_loc (fun (l, c, f) -> Anonymous_function (l, c, f))
-          | 'S' -> parse_loc (fun (l, c, f) -> Anonymous_module (l, c, f))
-          | 'P' -> parse_loc (fun (l, c, f) -> Partial_function (l, c, f))
-          | 'I' -> items := Inline_marker :: !items
-          | _ -> raise Exit
-        done;
-        if !pos = start_pos
+    let ( let* ) = Option.bind in
+    let parse_loc pos tag_constructor =
+      let* decoded, l = decode sym pos in
+      let* line, col, file_opt = parse_location decoded in
+      Some (tag_constructor line col file_opt, l)
+    in
+    let parse_named pos tag_constructor =
+      let* decoded, l = decode sym pos in
+      Some (tag_constructor decoded, l)
+    in
+    let len = String.length sym in
+    let* start_pos = matched_prefix_len sym in
+    let rec loop path pos =
+      let aux parse_fun tag_constructor =
+        let* it, l = parse_fun (pos + 1) tag_constructor in
+        loop (it :: path) (pos + 1 + l)
+      and build_result () =
+        if pos = start_pos
         then None
         else
           let suffix =
-            if !pos < len then String.sub sym !pos (len - !pos) else ""
+            if pos < len then String.sub sym pos (len - pos) else ""
           in
-          Some (List.rev !items, suffix)
-      with Exit | Invalid_argument _ -> None)
+          Some (List.rev path, suffix)
+      in
+      if pos < len
+      then
+        match sym.[pos] with
+        | 'U' -> aux parse_named (fun s -> Compilation_unit s)
+        | 'M' -> aux parse_named (fun s -> Module s)
+        | 'O' -> aux parse_named (fun s -> Class s)
+        | 'F' -> aux parse_named (fun s -> Function s)
+        | 'L' -> aux parse_loc (fun l c f -> Anonymous_function (l, c, f))
+        | 'S' -> aux parse_loc (fun l c f -> Anonymous_module (l, c, f))
+        | 'P' -> aux parse_loc (fun l c f -> Partial_function (l, c, f))
+        | 'I' -> loop (Inline_marker :: path) (pos + 1)
+        | '_' -> build_result ()
+        | _ -> None
+      else build_result ()
+    in
+    loop [] start_pos
 end
 
 let mangle_ident (cu : Compilation_unit.t) (path : Compilation_unit.t path) =
