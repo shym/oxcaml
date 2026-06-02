@@ -266,7 +266,8 @@ module Parsed = struct
       | _ -> i - pos
     in
     try loop pos
-    with Invalid_argument _ -> invalid_arg "non-terminated hexadecimal integer"
+    with Invalid_argument _ ->
+      invalid_arg "non-terminated hexadecimal integer"
 
   (** Read a decimal integer from [str] at [pos]. Returns [(value, length)]. *)
   let undecimal str pos =
@@ -281,8 +282,8 @@ module Parsed = struct
       Option.map (fun n -> n, len) (int_of_string_opt (String.sub str pos len))
 
   (** Inverse of {!encode_split_parts}: given the payload of an escaped
-      identifier (the part after the [u<len>] prefix), reconstruct the
-      original string by interleaving the raw and escaped parts. *)
+      identifier (the part after the [u<len>] prefix), reconstruct the original
+      string by interleaving the raw and escaped parts. *)
   let decode_split_parts sym =
     let initial_raw_pos =
       try String.index sym '_' + 1
@@ -310,9 +311,9 @@ module Parsed = struct
     loop ();
     Buffer.contents res
 
-  (** Inverse of {!encode}: decode a single length-prefixed identifier at
-      [pos] in [str], returning the decoded string and the number of bytes
-      consumed. *)
+  (** Inverse of {!encode}: decode a single length-prefixed identifier at [pos]
+      in [str], returning the decoded string and the number of bytes consumed.
+  *)
   let decode str pos =
     let is_escaped = pos < String.length str && str.[pos] = 'u' in
     let flag_len = if is_escaped then 1 else 0 in
@@ -331,8 +332,8 @@ module Parsed = struct
             full_len )
 
   (** Inverse of {!tag_prefixed_loc}: split a decoded [file_line_col] payload
-      back into its components. Returns [None] if the payload does not have
-      the expected shape. *)
+      back into its components. Returns [None] if the payload does not have the
+      expected shape. *)
   let parse_location loc =
     let ( let* ) = Option.bind in
     let* second = String.rindex_opt loc '_' in
@@ -353,8 +354,8 @@ module Parsed = struct
   (* macOS prefix with two underscores *)
   let alternate_prefix = "_" ^ ocaml_prefix
 
-  (* Returns the length of the matched prefix, or [None] if [sym] does not
-     start with either. Single source of truth for prefix detection so that
+  (* Returns the length of the matched prefix, or [None] if [sym] does not start
+     with either. Single source of truth for prefix detection so that
      [starts_with_prefix] and [parse] cannot drift. *)
   let matched_prefix_len sym =
     if String.starts_with ~prefix:linux_prefix sym
@@ -368,7 +369,7 @@ module Parsed = struct
   let parse sym =
     match matched_prefix_len sym with
     | None -> None
-    | Some start_pos ->
+    | Some start_pos -> (
       let pos = ref start_pos in
       let items = ref [] in
       let parse_loc tag_constructor =
@@ -389,29 +390,29 @@ module Parsed = struct
           items := tag_constructor decoded :: !items
       in
       let len = String.length sym in
-      (try
-         while !pos < len && sym.[!pos] <> '_' do
-           let tag = sym.[!pos] in
-           incr pos;
-           match tag with
-           | 'U' -> parse_named (fun s -> Compilation_unit s)
-           | 'M' -> parse_named (fun s -> Module s)
-           | 'O' -> parse_named (fun s -> Class s)
-           | 'F' -> parse_named (fun s -> Function s)
-           | 'L' -> parse_loc (fun (l, c, f) -> Anonymous_function (l, c, f))
-           | 'S' -> parse_loc (fun (l, c, f) -> Anonymous_module (l, c, f))
-           | 'P' -> parse_loc (fun (l, c, f) -> Partial_function (l, c, f))
-           | 'I' -> items := Inline_marker :: !items
-           | _ -> raise Exit
-         done;
-         if !pos = start_pos
-         then None
-         else
-           let suffix =
-             if !pos < len then String.sub sym !pos (len - !pos) else ""
-           in
-           Some (List.rev !items, suffix)
-       with Exit | Invalid_argument _ -> None)
+      try
+        while !pos < len && sym.[!pos] <> '_' do
+          let tag = sym.[!pos] in
+          incr pos;
+          match tag with
+          | 'U' -> parse_named (fun s -> Compilation_unit s)
+          | 'M' -> parse_named (fun s -> Module s)
+          | 'O' -> parse_named (fun s -> Class s)
+          | 'F' -> parse_named (fun s -> Function s)
+          | 'L' -> parse_loc (fun (l, c, f) -> Anonymous_function (l, c, f))
+          | 'S' -> parse_loc (fun (l, c, f) -> Anonymous_module (l, c, f))
+          | 'P' -> parse_loc (fun (l, c, f) -> Partial_function (l, c, f))
+          | 'I' -> items := Inline_marker :: !items
+          | _ -> raise Exit
+        done;
+        if !pos = start_pos
+        then None
+        else
+          let suffix =
+            if !pos < len then String.sub sym !pos (len - !pos) else ""
+          in
+          Some (List.rev !items, suffix)
+      with Exit | Invalid_argument _ -> None)
 end
 
 let mangle_ident (cu : Compilation_unit.t) (path : Compilation_unit.t path) =
