@@ -236,11 +236,13 @@ module Parsed = struct
       | 'A' .. 'Z' ->
         aux ((n * 26) + (Char.code str.[p] - Char.code 'A')) (p + 1)
       | _ -> n, p - pos
+      | exception Invalid_argument _ -> invalid_arg "no base26 number to decode"
     in
     match str.[pos] with
     | '_' -> None
     | 'A' .. 'Z' -> Some (aux 0 pos)
-    | _ -> invalid_arg "No base26 number to decode"
+    | _ | (exception Invalid_argument _) ->
+      invalid_arg "no base26 number to decode"
 
   (** Inverse of {!hex}. *)
   let unhex h1 h2 =
@@ -261,7 +263,8 @@ module Parsed = struct
         loop (i + 2)
       | _ -> i - pos
     in
-    loop pos
+    try loop pos
+    with Invalid_argument _ -> invalid_arg "non-terminated hexadecimal integer"
 
   (** Read a decimal integer from [str] at [pos]. Returns [(value, length)]. *)
   let undecimal str pos =
