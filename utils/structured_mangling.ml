@@ -329,30 +329,18 @@ module Parsed = struct
       back into its components. Returns [None] if the payload does not have
       the expected shape. *)
   let parse_location loc =
-    let len = String.length loc in
-    let rec find_underscores i count first second =
-      if i < 0
-      then first, second, count
-      else if loc.[i] = '_'
-      then
-        match count with
-        | 0 -> find_underscores (i - 1) 1 i second
-        | 1 -> find_underscores (i - 1) 2 i first
-        | _ -> first, second, count
-      else find_underscores (i - 1) count first second
+    let ( let* ) = Option.bind in
+    let* second = String.rindex_opt loc '_' in
+    let* first = String.rindex_from_opt loc (second - 1) '_' in
+    let line_str = String.sub loc (first + 1) (second - first - 1) in
+    let* line = int_of_string_opt line_str in
+    let col_str =
+      String.sub loc (second + 1) (String.length loc - second - 1)
     in
-    let first, second, count = find_underscores (len - 1) 0 (-1) (-1) in
-    if count < 2
-    then None
-    else
-      let file = String.sub loc 0 first in
-      let line_str = String.sub loc (first + 1) (second - first - 1) in
-      let col_str = String.sub loc (second + 1) (len - second - 1) in
-      match int_of_string_opt line_str, int_of_string_opt col_str with
-      | Some line, Some col ->
-        let file_opt = if file = "" then None else Some file in
-        Some (line, col, file_opt)
-      | _ -> None
+    let* col = int_of_string_opt col_str in
+    let file = String.sub loc 0 first in
+    let file_opt = if file = "" then None else Some file in
+    Some (line, col, file_opt)
 
   (* Linux prefix *)
   let linux_prefix = ocaml_prefix
