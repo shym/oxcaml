@@ -159,7 +159,9 @@ module Flat1 = struct
       let len = String.length str in
       let result = Bytes.create len in
       let rec loop i j =
-        if i >= len then j else
+        if i >= len
+        then j
+        else
           match style, str.[i] with
           | Macosx, '$'
             when Char.equal str.[i + 1] '$'
