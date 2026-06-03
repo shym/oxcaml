@@ -93,9 +93,9 @@ module FlatCommon = struct
       then Some plen
       else None
     in
-    match try_prefix alternate_caml_prefix with
+    match try_prefix caml_prefix with
     | Some _ as r -> r
-    | None -> try_prefix caml_prefix
+    | None -> try_prefix alternate_caml_prefix
 
   let starts_with_prefix str = matched_prefix_len str <> None
 
