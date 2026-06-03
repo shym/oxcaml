@@ -224,6 +224,24 @@ let mangle_path_item buf path_item =
 
 let mangle_path buf path = List.iter (mangle_path_item buf) path
 
+let mangle_ident (cu : Compilation_unit.t) (path : Compilation_unit.t path) =
+  (* Compare the current compilation unit with the one recorded in the [path] to
+     avoid repetition in the mangled name when they are identical, and to add an
+     explicit inline tag to separate the two compilation units (the one
+     currently created and the source of the code) when they differ. *)
+  let path =
+    Compilation_unit cu
+    ::
+    (match path with
+    | Compilation_unit cu' :: path' when Compilation_unit.equal cu cu' -> path'
+    | Compilation_unit _ :: _ -> Inline_marker :: path
+    | _ -> path)
+  in
+  let b = Buffer.create 10 in
+  Buffer.add_string b ocaml_prefix;
+  mangle_path b path;
+  Buffer.contents b
+
 module Parsed = struct
   let is_digit = function '0' .. '9' -> true | _ -> false
   (* CR shym Replace with Char.Ascii.is_digit when the transition to 5.4 is
@@ -409,21 +427,3 @@ module Parsed = struct
     in
     loop [] start_pos
 end
-
-let mangle_ident (cu : Compilation_unit.t) (path : Compilation_unit.t path) =
-  (* Compare the current compilation unit with the one recorded in the [path] to
-     avoid repetition in the mangled name when they are identical, and to add an
-     explicit inline tag to separate the two compilation units (the one
-     currently created and the source of the code) when they differ. *)
-  let path =
-    Compilation_unit cu
-    ::
-    (match path with
-    | Compilation_unit cu' :: path' when Compilation_unit.equal cu cu' -> path'
-    | Compilation_unit _ :: _ -> Inline_marker :: path
-    | _ -> path)
-  in
-  let b = Buffer.create 10 in
-  Buffer.add_string b ocaml_prefix;
-  mangle_path b path;
-  Buffer.contents b
