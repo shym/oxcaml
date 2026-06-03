@@ -277,15 +277,16 @@ module Parsed = struct
 
   let unhexes buf str pos =
     let rec loop i =
-      match str.[i] with
-      | '0' .. '9' | 'a' .. 'f' ->
-        Buffer.add_char buf (unhex str.[i] str.[i + 1]);
-        loop (i + 2)
-      | _ -> i - pos
+      try
+        match str.[i] with
+        | '0' .. '9' | 'a' .. 'f' ->
+          Buffer.add_char buf (unhex str.[i] str.[i + 1]);
+          loop (i + 2)
+        | _ -> i - pos
+      with Invalid_argument _ ->
+        invalid_arg "non-terminated hexadecimal integer"
     in
-    try loop pos
-    with Invalid_argument _ ->
-      invalid_arg "non-terminated hexadecimal integer"
+    loop pos
 
   (** Read a decimal integer from [str] at [pos]. Returns [(value, length)]. *)
   let undecimal str pos =
