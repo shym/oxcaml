@@ -138,22 +138,16 @@ module Flat1 = struct
     let rec scan i saw_dollar_hex_pair =
       if i >= len
       then if saw_dollar_hex_pair then Macosx else Linux_like
-      else if Char.equal str.[i] '.'
-      then Linux_like
-      else if
-        Char.equal str.[i] '_'
-        && i + 1 < len
-        && Char.equal str.[i + 1] '_'
-      then Linux_like
-      else if Char.equal str.[i] '$'
-      then
-        if i + 1 < len && Char.equal str.[i + 1] '$'
-        then Macosx
-        else if
-          i + 2 < len && is_xdigit str.[i + 1] && is_xdigit str.[i + 2]
-        then scan (i + 3) true
-        else Macosx
-      else scan (i + 1) saw_dollar_hex_pair
+      else
+        match str.[i] with
+        | '.' -> Linux_like
+        | '_' when i + 1 < len && Char.equal str.[i + 1] '_' -> Linux_like
+        | '$' when i + 1 < len && Char.equal str.[i + 1] '$' -> Macosx
+        | '$' when i + 2 < len && is_xdigit str.[i + 1] && is_xdigit str.[i + 2]
+          ->
+          scan (i + 3) true
+        | '$' -> Macosx
+        | _ -> scan (i + 1) saw_dollar_hex_pair
     in
     scan prefix_len false
 
