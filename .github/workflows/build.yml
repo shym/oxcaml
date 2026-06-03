@@ -4,17 +4,15 @@
 name: build
 on:
   push:
-    branches:
-      - main
-      - '*microbranch'
-    tags:
-      - '*'
   pull_request:
   merge_group:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: >-
+      ${{ case(matrix.os=='warp-ubuntu-latest-arm64-8x', 'ubuntu-24.04-arm',
+               matrix.os=='warp-macos-15-arm64-6x', 'macos-latest',
+               'ubuntu-latest') }}
 
     strategy:
       fail-fast: false
