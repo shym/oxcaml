@@ -127,12 +127,12 @@ module Flat1 = struct
     | Linux_like
     | Macosx
 
-  (* A bare ['.'] or ["__"] is a positive Linux-like marker (macOS
-     escapes source ['.'] as ["$$2e"] and never uses ["__"]). A ["$$"]
-     or a ['$'] not followed by two hex digits is a positive macOS
-     marker. A ['$'] followed by two hex digits is ambiguous in
-     isolation; if no Linux marker appears anywhere else in the symbol
-     the only coherent reading is macOS. *)
+  (* A bare ['.'] or ["__"] can only appear in a Linux-like symbol (macOS
+     escapes source ['.'] as ["$$2e"] and never uses ["__"]). A ["$$"] or a
+     ['$'] not followed by two hex digits can only appear in a macOS symbol. A
+     ['$'] followed by two hex digits is ambiguous in isolation; if no ['.'] and
+     no ["__"] appear anywhere else in the symbol the only coherent reading is
+     macOS. *)
   let detect_style ~prefix_len str =
     let len = String.length str in
     let rec scan i saw_dollar_hex_pair =
