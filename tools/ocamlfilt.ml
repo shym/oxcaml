@@ -154,78 +154,44 @@ module Flat1 = struct
   let unmangle str =
     match matched_prefix_len str with
     | None -> None
-    | Some prefix_len ->
+    | Some prefix_len -> (
       let style = detect_style ~prefix_len str in
-      let j = ref 0 in
-      let i = ref prefix_len in
       let len = String.length str in
       let result = Bytes.create len in
+      let rec loop i j =
+        if i >= len then j else
+          match style, str.[i] with
+          | Macosx, '$'
+            when Char.equal str.[i + 1] '$'
+                 && is_xdigit str.[i + 2]
+                 && is_xdigit str.[i + 3] ->
+            (* "$$xx" -> hex-encoded character *)
+            let a = (hex str.[i + 2] lsl 4) lor hex str.[i + 3] in
+            Bytes.set result j (Char.chr a);
+            loop (i + 4) (j + 1)
+          | Macosx, '$' ->
+            (* bare "$" -> separator *)
+            Bytes.set result j '.';
+            loop (i + 1) (j + 1)
+          | Linux_like, '$' when is_xdigit str.[i + 1] && is_xdigit str.[i + 2]
+            ->
+            (* "$xx" -> hex-encoded character *)
+            let a = (hex str.[i + 1] lsl 4) lor hex str.[i + 2] in
+            Bytes.set result j (Char.chr a);
+            loop (i + 3) (j + 1)
+          | Linux_like, '_' when Char.equal str.[i + 1] '_' ->
+            (* "__" -> separator (pre-5.3 / runtime4 encoding) *)
+            Bytes.set result j '.';
+            loop (i + 2) (j + 1)
+          | _, c ->
+            Bytes.set result j c;
+            loop (i + 1) (j + 1)
+      in
       try
-        while !i < len do
-          match style with
-          | Macosx ->
-            if
-              Char.equal str.[!i] '$'
-              && Char.equal str.[!i + 1] '$'
-              && Char.equal str.[!i + 2] '$'
-              && is_xdigit str.[!i + 3]
-              && is_xdigit str.[!i + 4]
-            then (
-              (* "$$$xx" -> separator + hex-encoded character *)
-              let a = (hex str.[!i + 3] lsl 4) lor hex str.[!i + 4] in
-              Bytes.set result !j '.';
-              j := !j + 1;
-              Bytes.set result !j (Char.chr a);
-              j := !j + 1;
-              i := !i + 5)
-            else if
-              Char.equal str.[!i] '$'
-              && Char.equal str.[!i + 1] '$'
-              && is_xdigit str.[!i + 2]
-              && is_xdigit str.[!i + 3]
-            then (
-              (* "$$xx" -> hex-encoded character *)
-              let a = (hex str.[!i + 2] lsl 4) lor hex str.[!i + 3] in
-              Bytes.set result !j (Char.chr a);
-              j := !j + 1;
-              i := !i + 4)
-            else if Char.equal str.[!i] '$'
-            then (
-              (* bare "$" -> separator *)
-              Bytes.set result !j '.';
-              j := !j + 1;
-              i := !i + 1)
-            else (
-              Bytes.set result !j str.[!i];
-              j := !j + 1;
-              i := !i + 1)
-          | Linux_like ->
-            if
-              Char.equal str.[!i] '$'
-              && is_xdigit str.[!i + 1]
-              && is_xdigit str.[!i + 2]
-            then (
-              (* "$xx" -> hex-encoded character *)
-              let a = (hex str.[!i + 1] lsl 4) lor hex str.[!i + 2] in
-              Bytes.set result !j (Char.chr a);
-              j := !j + 1;
-              i := !i + 3)
-            else if
-              Char.equal str.[!i] '_' && Char.equal str.[!i + 1] '_'
-            then (
-              (* "__" -> separator (pre-5.3 / runtime4 encoding) *)
-              Bytes.set result !j '.';
-              j := !j + 1;
-              i := !i + 2)
-            else (
-              Bytes.set result !j str.[!i];
-              j := !j + 1;
-              i := !i + 1)
-        done;
-        Some (Bytes.extend result 0 (!j - len) |> Bytes.to_string)
-      (* Out-of-bounds index accesses on a truncated symbol raise
-         [Invalid_argument]; everything else should propagate. *)
-      with Invalid_argument _ -> None
+        Some (Bytes.sub_string result 0 (loop prefix_len 0))
+        (* Out-of-bounds index accesses on a truncated symbol raise
+           [Invalid_argument]; everything else should propagate. *)
+      with Invalid_argument _ -> None)
 end
 
 (* OCaml flat0 style demangling 5.2 and earlier. *)
@@ -235,40 +201,34 @@ module Flat0 = struct
   let unmangle str =
     match matched_prefix_len str with
     | None -> None
-    | Some prefix_len ->
-      let j = ref 0 in
-      let i = ref prefix_len in
+    | Some prefix_len -> (
       let len = String.length str in
       let result = Bytes.create len in
-      try
-        while !i < len do
-          if str.[!i] == '_' && str.[!i + 1] == '_'
-          then (
+      let rec loop i j =
+        if i >= len
+        then j
+        else
+          match str.[i] with
+          | '_' when Char.equal str.[i + 1] '_' ->
             (* "__" -> "." *)
-            Bytes.set result !j '.';
-            j := !j + 1;
-            i := !i + 2)
-          else if
-            Char.equal str.[!i] '$'
-            && is_xdigit str.[!i + 1]
-            && is_xdigit str.[!i + 2]
-          then (
+            Bytes.set result j '.';
+            loop (i + 2) (j + 1)
+          | '$' when is_xdigit str.[i + 1] && is_xdigit str.[i + 2] ->
             (* "$xx" is a hex-encoded character *)
-            let a = Char.chr ((hex str.[!i + 1] lsl 4) lor hex str.[!i + 2]) in
-            Bytes.set result !j a;
-            j := !j + 1;
-            i := !i + 3)
-          else (
+            let a = Char.chr ((hex str.[i + 1] lsl 4) lor hex str.[i + 2]) in
+            Bytes.set result j a;
+            loop (i + 3) (j + 1)
+          | c ->
             (* regular characters *)
-            Bytes.set result !j str.[!i];
-            j := !j + 1;
-            i := !i + 1)
-        done;
-        Some (Bytes.extend result 0 (!j - len) |> Bytes.to_string)
-      (* Same rationale as [Flat1.unmangle]: catch the
-         [Invalid_argument] from out-of-bounds index accesses on a
-         truncated symbol, propagate everything else. *)
-      with Invalid_argument _ -> None
+            Bytes.set result j c;
+            loop (i + 1) (j + 1)
+      in
+      try
+        Some (Bytes.sub_string result 0 (loop prefix_len 0))
+        (* Same rationale as [Flat1.unmangle]: catch the [Invalid_argument] from
+           out-of-bounds index accesses on a truncated symbol, propagate
+           everything else. *)
+      with Invalid_argument _ -> None)
 end
 
 (* Auto-detect and demangle *)
