@@ -179,7 +179,7 @@ module Flat1 = struct
             let a = (hex str.[i + 1] lsl 4) lor hex str.[i + 2] in
             Bytes.set result j (Char.chr a);
             loop (i + 3) (j + 1)
-          | Linux_like, '_' when Char.equal str.[i + 1] '_' ->
+          | Linux_like, '_' when i + 1 < len && Char.equal str.[i + 1] '_' ->
             (* "__" -> separator (pre-5.3 / runtime4 encoding) *)
             Bytes.set result j '.';
             loop (i + 2) (j + 1)
@@ -209,7 +209,7 @@ module Flat0 = struct
         then j
         else
           match str.[i] with
-          | '_' when Char.equal str.[i + 1] '_' ->
+          | '_' when i + 1 < len && Char.equal str.[i + 1] '_' ->
             (* "__" -> "." *)
             Bytes.set result j '.';
             loop (i + 2) (j + 1)
