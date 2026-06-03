@@ -337,7 +337,7 @@ module Parsed = struct
     let flag_len = if is_escaped then 1 else 0 in
     match undecimal str (pos + flag_len) with
     | None -> None
-    | Some (payload_len, length_len) ->
+    | Some (payload_len, length_len) -> (
       let full_len = flag_len + length_len + payload_len in
       if payload_len <= 0 || pos + full_len > String.length str
       then None
@@ -345,9 +345,13 @@ module Parsed = struct
         let payload =
           String.sub str (pos + flag_len + length_len) payload_len
         in
-        Some
-          ( (if is_escaped then decode_split_parts payload else payload),
-            full_len )
+        try
+          Some
+            ( (if is_escaped then decode_split_parts payload else payload),
+              full_len )
+          (* decode_split_parts raises Invalid_argument exceptions when the
+             symbol is not correctly formatted *)
+        with Invalid_argument _ -> None)
 
   (** Inverse of {!tag_prefixed_loc}: split a decoded [file_line_col] payload
       back into its components. Returns [None] if the payload does not have the
