@@ -353,15 +353,14 @@ module Parsed = struct
       back into its components. Returns [None] if the payload does not have the
       expected shape. *)
   let parse_location loc =
-    let ( let* ) = Option.bind in
-    let* second = String.rindex_opt loc '_' in
-    let* first = String.rindex_from_opt loc (second - 1) '_' in
+    Option.bind (String.rindex_opt loc '_') @@ fun second ->
+    Option.bind (String.rindex_from_opt loc (second - 1) '_') @@ fun first ->
     let line_str = String.sub loc (first + 1) (second - first - 1) in
-    let* line = int_of_string_opt line_str in
+    Option.bind (int_of_string_opt line_str) @@ fun line ->
     let col_str =
       String.sub loc (second + 1) (String.length loc - second - 1)
     in
-    let* col = int_of_string_opt col_str in
+    Option.bind (int_of_string_opt col_str) @@ fun col ->
     let file = String.sub loc 0 first in
     let file_opt = if file = "" then None else Some file in
     Some (line, col, file_opt)
@@ -385,21 +384,20 @@ module Parsed = struct
   let starts_with_prefix sym = Option.is_some (matched_prefix_len sym)
 
   let parse sym =
-    let ( let* ) = Option.bind in
     let parse_loc pos tag_constructor =
-      let* decoded, l = decode sym pos in
-      let* line, col, file_opt = parse_location decoded in
+      Option.bind (decode sym pos) @@ fun (decoded, l) ->
+      Option.bind (parse_location decoded) @@ fun (line, col, file_opt) ->
       Some (tag_constructor line col file_opt, l)
     in
     let parse_named pos tag_constructor =
-      let* decoded, l = decode sym pos in
+      Option.bind (decode sym pos) @@ fun (decoded, l) ->
       Some (tag_constructor decoded, l)
     in
     let len = String.length sym in
-    let* start_pos = matched_prefix_len sym in
+    Option.bind (matched_prefix_len sym) @@ fun start_pos ->
     let rec loop path pos =
       let aux parse_fun tag_constructor =
-        let* it, l = parse_fun (pos + 1) tag_constructor in
+        Option.bind (parse_fun (pos + 1) tag_constructor) @@ fun (it, l) ->
         loop (it :: path) (pos + 1 + l)
       and build_result () =
         if pos = start_pos
