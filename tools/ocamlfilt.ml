@@ -39,11 +39,11 @@ let is_digit = function '0' .. '9' -> true | _ -> false
 (** Structured name demangler
 
     Parsing the mangled symbol into a {!Structured_mangling.path} is delegated
-    to {!Structured_mangling.Parsed.parse}, so that the encoder and decoder live
+    to {!Structured_mangling.Parse.parse}, so that the encoder and decoder live
     next to each other and can be tested as inverses. This module only chooses
     how to render the parsed path as human-readable text. *)
 module Structured = struct
-  let starts_with_prefix = Structured_mangling.Parsed.starts_with_prefix
+  let starts_with_prefix = Structured_mangling.Parse.starts_with_prefix
 
   let format_anonymous_location prefix line col file_opt =
     let file = Option.value ~default:"" file_opt in
@@ -63,7 +63,7 @@ module Structured = struct
   let pp_path (path, suffix) =
     String.concat "." (List.map render_path_item path) ^ suffix
 
-  let unmangle sym = Option.map pp_path (Structured_mangling.Parsed.parse sym)
+  let unmangle sym = Option.map pp_path (Structured_mangling.Parse.parse sym)
 end
 
 module FlatCommon = struct

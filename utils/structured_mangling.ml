@@ -242,7 +242,7 @@ let mangle_ident (cu : Compilation_unit.t) (path : Compilation_unit.t path) =
   mangle_path b path;
   Buffer.contents b
 
-module Parsed = struct
+module Parse = struct
   let is_digit = function '0' .. '9' -> true | _ -> false
   (* CR shym Replace with Char.Ascii.is_digit when the transition to 5.4 is
      complete *)
