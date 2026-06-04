@@ -288,7 +288,6 @@ let process_stdin format () =
 let process_symbols format symbols = List.iter (process_line format) symbols
 
 let main format symbols =
-  let format = Option.value ~default:Auto format in
   match symbols with
   | [] -> process_stdin format ()
   | symbols -> process_symbols format symbols
@@ -299,7 +298,7 @@ let usage_msg =
    Usage: ocamlfilt [OPTIONS] [SYMBOLS...]\n\n\
    If no symbols are provided, reads from standard input.\n"
 
-let format_ref = ref None
+let format_ref = ref Auto
 
 let symbols_ref = ref []
 
@@ -308,14 +307,12 @@ let specs =
       Arg.String
         (fun s ->
           format_ref
-            := Some
-                 (match s with
-                 | "auto" -> Auto
-                 | "flat0" -> Flat0
-                 | "flat1" -> Flat1
-                 | "structured" -> Structured
-                 | _ ->
-                   raise (Arg.Bad (Printf.sprintf "unknown format: '%s'" s)))),
+            := match s with
+               | "auto" -> Auto
+               | "flat0" -> Flat0
+               | "flat1" -> Flat1
+               | "structured" -> Structured
+               | _ -> raise (Arg.Bad (Printf.sprintf "unknown format: '%s'" s))),
       "<format>  Set mangling format: auto, flat0 (<= 5.2.1), flat1 (>= 5.3), \
        structured  (default: auto)" ) ]
 
