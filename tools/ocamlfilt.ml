@@ -67,29 +67,28 @@ module Structured = struct
 end
 
 module FlatCommon = struct
-  (* On Linux-like targets the linker name is [caml<unit>...]. On macOS
-     the assembler prepends a single underscore for its calling
-     convention, so the actual linker name is [_caml<unit>...]; nm,
-     objdump and assembly listings show that as-is. We accept both
-     forms here. (Unlike the structured scheme, which uses [_Caml] as
-     the bare prefix and so sees [__Caml] on macOS, the flat scheme's
-     bare prefix is the underscore-free [caml].) *)
+  (* On Linux-like targets the linker name is [caml<unit>...]. On macOS the
+     assembler prepends a single underscore for its calling convention, so the
+     actual linker name is [_caml<unit>...]; nm, objdump and assembly listings
+     show that as-is. We accept both forms here. (Unlike the structured scheme,
+     which uses [_Caml] as the bare prefix and so sees [__Caml] on macOS, the
+     flat scheme's bare prefix is the underscore-free [caml].) *)
   let caml_prefix = "caml"
 
   let alternate_caml_prefix = "_caml"
 
   let is_upper = function 'A' .. 'Z' -> true | _ -> false
 
-  (* If [str] starts with one of the recognised flat prefixes followed
-     by an uppercase letter (i.e. a syntactically valid OCaml module
-     name), return the length of the matched prefix. Otherwise return
-     [None]. *)
+  (* If [str] starts with one of the recognised flat prefixes followed by an
+     uppercase letter (i.e. a syntactically valid OCaml module name), return the
+     length of the matched prefix. Otherwise return [None]. *)
   let matched_prefix_len str =
     let try_prefix prefix =
       let plen = String.length prefix in
-      if String.starts_with ~prefix str
-         && String.length str > plen
-         && is_upper str.[plen]
+      if
+        String.starts_with ~prefix str
+        && String.length str > plen
+        && is_upper str.[plen]
       then Some plen
       else None
     in
@@ -114,12 +113,12 @@ module FlatCommon = struct
     | _ -> invalid_arg (Printf.sprintf "Cannot decode hexadecimal digit: %c" c)
 end
 
-(* OCaml 5.3+ flat demangling. Trunk emits one of two styles per
-   binary, distinguished here by a prescan:
-   - Linux-like: separator ['.'] (or ["__"] in the pre-5.3 encoding),
-     escape ["$xx"].
-   - macOS-like: separator ['$'], escape ["$$xx"], separator+escape
-     ["$$$xx"]. *)
+(** OCaml 5.3+ flat demangling. Trunk emits one of two styles per binary,
+    distinguished here by a prescan:
+    - Linux-like: separator ['.'] (or ["__"] in the pre-5.3 encoding), escape
+      ["$xx"].
+    - macOS-like: separator ['$'], escape ["$$xx"], separator+escape ["$$$xx"].
+*)
 module Flat1 = struct
   open FlatCommon
 
@@ -201,7 +200,7 @@ module Flat1 = struct
       with Invalid_argument _ -> None)
 end
 
-(* OCaml flat0 style demangling 5.2 and earlier. *)
+(** OCaml flat0 style demangling 5.2 and earlier. *)
 module Flat0 = struct
   open FlatCommon
 
@@ -267,9 +266,9 @@ let demangle_with_format format str =
   | Flat1 -> Flat1.unmangle str
   | Structured -> Structured.unmangle str
 
-(* Mirroring c++filt / rustfilt: print the demangled form when we recognise
-   the symbol, otherwise pass the input through unchanged. The exit code is
-   always 0 so the tool is safe to drop into a shell pipeline. *)
+(* Mirroring c++filt / rustfilt: print the demangled form when we recognise the
+   symbol, otherwise pass the input through unchanged. The exit code is always 0
+   so the tool is safe to drop into a shell pipeline. *)
 let process_line format line =
   match demangle_with_format format line with
   | Some demangled -> print_endline demangled
