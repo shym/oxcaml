@@ -83,6 +83,8 @@ done
     "${test_build_directory}/e2e_table.structured.col" \
     "${test_build_directory}/e2e_table.auto.col"
 } | sed -E \
+    -e 's/_[0-9]+_[0-9]+_code/_N_N_code/g' \
+    -e 's/_[0-9]+_code/_N_code/g' \
     -e "s/_[0-9]+_[0-9]+(${TAB}|$)/_N_N\\1/g" \
     -e "s/_[0-9]+(${TAB}|$)/_N\\1/g" \
     -e 's/Pmakeblock[0-9]+/PmakeblockN/g' \
