@@ -56,37 +56,40 @@ type derived_system =
   | Unknown
 
 let derived_system () : derived_system =
-  (* Derived from [configure.ac] *)
+  (* /!\ This should be kept in sync with [configure.ac], mostly using
+     [utils/target_system.sh] *)
   match architecture (), Config.model, Config.system with
+  (* Part generated from [configure.ac] by [target_system.sh] *)
+  (* BEGIN target_system.sh *)
   | AArch64, _, "freebsd" -> FreeBSD
   | AArch64, _, "linux" -> Linux
   | AArch64, _, "macosx" -> MacOS_like
-  | ARM, "armv5", "linux_eabi" -> Linux
-  | ARM, "armv5te", "linux_eabi" -> Linux
+  | AArch64, _, "netbsd" -> NetBSD
+  | AArch64, _, "openbsd" -> OpenBSD
+  | ARM, "armv5", "linux" -> Linux
+  | ARM, "armv5te", "linux" -> Linux
   | ARM, "armv6", "freebsd" -> FreeBSD
-  | ARM, "armv6", "linux_eabi" -> Linux
-  | ARM, "armv6", "linux_eabihf" -> Linux
+  | ARM, "armv6", "linux" -> Linux
   | ARM, "armv6", "netbsd" -> NetBSD
-  | ARM, "armv6t2", "linux_eabi" -> Linux
-  | ARM, "armv7", "linux_eabi" -> Linux
-  | ARM, "armv7", "linux_eabihf" -> Linux
+  | ARM, "armv6t2", "linux" -> Linux
+  | ARM, "armv7", "linux" -> Linux
   | ARM, "armv7", "netbsd" -> NetBSD
-  | ARM, "armv8", "linux_eabi" -> Linux
-  | ARM, "armv8", "linux_eabihf" -> Linux
-  | ARM, _, "bsd" -> OpenBSD
-  | ARM, _, "linux_eabi" -> Linux
-  | ARM, _, "linux_eabihf" -> Linux
+  | ARM, "armv8", "linux" -> Linux
+  | ARM, _, "linux" -> Linux
+  | ARM, _, "openbsd" -> OpenBSD
   | IA32, _, "beos" -> BeOS
-  | IA32, _, "bsd_elf" -> Generic_BSD
   | IA32, _, "cygwin" -> Cygwin
+  | IA32, _, "freebsd" -> FreeBSD
   | IA32, _, "gnu" -> GNU
-  | IA32, _, "linux_elf" -> Linux
+  | IA32, _, "linux" -> Linux
   | IA32, _, "mingw" -> MinGW_32
+  | IA32, _, "netbsd" -> NetBSD
+  | IA32, _, "openbsd" -> OpenBSD
   | IA32, _, "win32" -> Win32
-  | POWER, "ppc", "elf" -> Linux
-  | POWER, "ppc64", "elf" -> Linux
-  | POWER, "ppc64le", "elf" -> Linux
+  | POWER, "ppc64le", "linux" -> Linux
+  | POWER, "ppc64", "linux" -> Linux
   | Riscv, "riscv64", "linux" -> Linux
+  | X86_64, _, "beos" -> BeOS
   | X86_64, _, "cygwin" -> Cygwin
   | X86_64, _, "dragonfly" -> Dragonfly
   | X86_64, _, "freebsd" -> FreeBSD
@@ -98,7 +101,8 @@ let derived_system () : derived_system =
   | X86_64, _, "openbsd" -> OpenBSD
   | X86_64, _, "solaris" -> Solaris
   | X86_64, _, "win64" -> Win64
-  | Z, "z10", "elf" -> Linux
+  | Z, "z10", "linux" -> Linux
+  (* END target_system.sh *)
   | _, _, "unknown" -> Unknown
   | _, _, _ ->
     Misc.fatal_errorf
