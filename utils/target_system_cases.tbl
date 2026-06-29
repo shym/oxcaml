@@ -1,10 +1,20 @@
-/* Source for the configure script to map target triples to:
+/* Common source for the configure script to map target triples to:
  * - has_native_backend
  * - architecture
  * - model
- * - and operating system */
+ * - and operating system
+ *
+ * and for the compiler code to map strings for those last three elements to the
+ * `derived_system` enumerated type. */
 
-/* MATCH_TARGET(target pattern, has_native_backend, architecture, model, OS) */
+/* MATCH_TARGET(target pattern, has_native_backend, architecture, model, OS)
+ * or
+ * MATCH_TARGET_AND_64(target pattern, architecture 64, model 64,
+ *                     architecture 32, model 32, OS)
+ *
+ * WARNING: the 32-bit architecture and model are ignored when generating the
+ * OCaml match, as they are, at the moment, already covered before.
+ */
 
 /* In all the cases below, architecture = 'none' <=> OS = 'unknown' */
 
@@ -43,6 +53,7 @@ MATCH_TARGET(x86_64-*-haiku*,no,amd64,default,beos)
 MATCH_TARGET(arm64-*-darwin*|aarch64-*-darwin*,yes,arm64,default,macosx)
 MATCH_TARGET(x86_64-*-darwin*,yes,amd64,default,macosx)
 MATCH_TARGET(x86_64-w64-mingw32*,yes,amd64,default,mingw64)
+/* See the warning above */
 MATCH_TARGET_AND_64(aarch64-*-linux*,arm64,default,arm,armv8,linux)
 MATCH_TARGET(aarch64-*-freebsd*,yes,arm64,default,freebsd)
 MATCH_TARGET(aarch64-*-openbsd*,yes,arm64,default,openbsd)

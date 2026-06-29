@@ -53,6 +53,18 @@
    (bash
     "`grep '^CPP=' %{conf} | cut -d'=' -f2-` -I ../%{env:RUNTIME_DIR=runtime-dir-env-var-not-set}/caml %{c}"))))
 
+(rule
+ (targets target_system_cases.ml)
+ (mode fallback)
+ (deps
+  (:conf ../Makefile.config)
+  (:c target_system_cases.ml.c)
+  (:tbl target_system_cases.tbl))
+ (action
+  (with-stdout-to
+   %{targets}
+   (bash "`grep '^CPP=' %{conf} | cut -d'=' -f2-` -undef %{c}"))))
+
 (include_subdirs unqualified)
 
 (library
