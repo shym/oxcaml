@@ -1832,113 +1832,9 @@ OCAML_CC_SUPPORTS_LABELS_AS_VALUES
 
 # Configure the native-code compiler
 
-arch=none
-model=default
-system=unknown
-
-# In all the cases below, if $arch is set so then so too must $system,
-# preserving $arch = 'none' <=> $system = 'unknown'
-has_native_backend=no
-native_ldflags=""
-AS_CASE([$target],
-  [[i[3456]86-*-linux*]],
-    [arch=i386; system=linux],
-  [[i[3456]86-*-freebsd*]],
-    [arch=i386; system=freebsd],
-  [[i[3456]86-*-netbsd*]],
-    [arch=i386; system=netbsd],
-  [[i[3456]86-*-openbsd*]],
-    [arch=i386; system=openbsd],
-  [[i[3456]86-*-haiku*]],
-    [arch=i386; system=beos],
-  [[i[3456]86-*-cygwin]],
-    [arch=i386; system=cygwin],
-  [[i[3456]86-w64-mingw32*]],
-    [arch=i386; system=mingw],
-  [[i[3456]86-*-gnu*]],
-    [arch=i386; system=gnu],
-  [i686-pc-windows],
-    [arch=i386; system=win32],
-  [x86_64-pc-windows],
-    [has_native_backend=yes; arch=amd64; system=win64],
-  [[powerpc64le*-*-linux*]],
-    [has_native_backend=yes; arch=power; model=ppc64le; system=linux],
-  [[powerpc64*-*-linux-musl*]],
-    [has_native_backend=yes; arch=power; model=ppc64; system=linux],
-  [[s390x*-*-linux*]],
-    [has_native_backend=yes; arch=s390x; model=z10; system=linux],
-  # expected to match "gnueabihf" as well as "musleabihf"
-  [armv6*-*-linux-*eabihf],
-    [arch=arm; model=armv6; system=linux],
-  [armv7*-*-linux-*eabihf],
-    [arch=arm; model=armv7; system=linux],
-  [armv8*-*-linux-*eabihf],
-    [arch=arm; model=armv8; system=linux],
-  [armv8*-*-linux-*eabi],
-    [arch=arm; model=armv8; system=linux],
-  [armv7*-*-linux-*eabi],
-    [arch=arm; model=armv7; system=linux],
-  [armv6t2*-*-linux-*eabi],
-    [arch=arm; model=armv6t2; system=linux],
-  [armv6*-*-linux-*eabi],
-    [arch=arm; model=armv6; system=linux],
-  [armv6*-*-freebsd*],
-    [arch=arm; model=armv6; system=freebsd],
-  [earmv6*-*-netbsd*],
-    [arch=arm; model=armv6; system=netbsd],
-  [earmv7*-*-netbsd*],
-    [arch=arm; model=armv7; system=netbsd],
-  [armv5te*-*-linux-*eabi],
-    [arch=arm; model=armv5te; system=linux],
-  [armv5*-*-linux-*eabi],
-    [arch=arm; model=armv5; system=linux],
-  [arm*-*-linux-*eabihf],
-    [arch=arm; system=linux],
-  [arm*-*-linux-*eabi],
-    [arch=arm; system=linux],
-  [arm*-*-openbsd*],
-    [arch=arm; system=openbsd],
-  [zaurus*-*-openbsd*],
-    [arch=arm; system=openbsd],
-  [x86_64-*-linux*],
-    [has_native_backend=yes; arch=amd64; system=linux],
-  [x86_64-*-dragonfly*],
-    [arch=amd64; system=dragonfly],
-  [x86_64-*-solaris*],
-    [has_native_backend=yes; arch=amd64; system=solaris],
-  [x86_64-*-freebsd*],
-    [has_native_backend=yes; arch=amd64; system=freebsd],
-  [x86_64-*-netbsd*],
-    [has_native_backend=yes; arch=amd64; system=netbsd],
-  [x86_64-*-openbsd*],
-    [has_native_backend=yes; arch=amd64; system=openbsd],
-  [x86_64-*-haiku*],
-    [arch=amd64; system=beos],
-  [arm64-*-darwin*],
-    [has_native_backend=yes; arch=arm64; system=macosx],
-  [aarch64-*-darwin*],
-    [has_native_backend=yes; arch=arm64; system=macosx],
-  [x86_64-*-darwin*],
-    [has_native_backend=yes; arch=amd64; system=macosx],
-  [x86_64-w64-mingw32*],
-    [has_native_backend=yes; arch=amd64; system=mingw64],
-  [aarch64-*-linux*],
-    [AS_IF([$arch64],
-       [has_native_backend=yes; arch=arm64; system=linux],
-       [arch=arm; model=armv8; system=linux])],
-  [aarch64-*-freebsd*],
-    [has_native_backend=yes; arch=arm64; system=freebsd],
-  [aarch64-*-openbsd*],
-    [has_native_backend=yes; arch=arm64; system=openbsd],
-  [aarch64-*-netbsd*],
-    [has_native_backend=yes; arch=arm64; system=netbsd],
-  [x86_64-*-cygwin],
-    [has_native_backend=yes; arch=amd64; system=cygwin],
-  [riscv64-*-linux*],
-    [has_native_backend=yes; arch=riscv; model=riscv64; system=linux],
-  [x86_64-*-gnu*],
-    [has_native_backend=yes; arch=amd64; system=gnu]
-)
+m4_syscmd([${CPP_TRIPLE:-cc -E -P -undef} \
+  build-aux/target_system.m4.c > build-aux/target_system.m4])
+m4_include([build-aux/target_system.m4])
 
 AS_CASE([$arch],
   [amd64],
@@ -1954,6 +1850,7 @@ AS_IF([test x"$enable_stack_checks" = xyes],
     [])])
 
 native_cflags=''
+native_ldflags=''
 oc_native_cflags=''
 oc_native_cppflags="-DNATIVE_CODE\
  -DTARGET_${arch} -DMODEL_${model} -DSYS_${system}"
