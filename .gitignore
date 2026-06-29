@@ -74,6 +74,7 @@ _profile/
 /ocamlc
 /config.cache
 /configure
+/build-aux/target_system.m4
 /ocaml-*.cache
 /config.log
 /config.status
