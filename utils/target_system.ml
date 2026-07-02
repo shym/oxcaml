@@ -51,6 +51,9 @@ type assembler =
   | MacOS
   | MASM
 
+(* CR shym Why is it a function instead of a constant as, for instance,
+   [Asm_label.label_prefix] will require its value at initialisation? (Maybe
+   it's turned into a constant function and inlined by Flambda2 anyway?) *)
 let assembler () =
   match derived_system () with
   | Win32 | Win64 -> MASM

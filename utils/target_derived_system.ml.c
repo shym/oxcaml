@@ -1,3 +1,4 @@
+(* CR shym Why [MacOS_like] instead of simply [MacOS]? *)
 type derived_system =
   | Linux
 #define linux() "linux" -> Linux
@@ -41,6 +42,12 @@ type derived_system =
 #define DEFAULT(NATIVE,ARCH,MODEL,SYSTEM) \
   | #ARCH, #MODEL, SYSTEM()
 
+(* CR shym It's unclear to me what we gain here by matching on [architecture]
+   and [model], as the result is really only related to the value of [system].
+   Is there a historical reason with some strange case where some generic value
+   in [Config.system] could be made more precise by looking at the other
+   settings? Or was it to ensure somewhere that [Target_system] and [configure]
+   are somewhat consistent? *)
 let derived_system () : derived_system =
   match Config.architecture, Config.model, Config.system with
 #include "target_system_cases.tbl"
