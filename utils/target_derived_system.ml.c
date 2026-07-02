@@ -1,36 +1,36 @@
 type derived_system =
   | Linux
+#define linux() "linux" -> Linux
   | MinGW_32
+#define mingw() "mingw" -> MinGW_32
   | MinGW_64
+#define mingw64() "mingw64" -> MinGW_64
   | Win32
+#define win32() "win32" -> Win32
   | Win64
+#define win64() "win64" -> Win64
   | Cygwin
+#define cygwin() "cygwin" -> Cygwin
   | MacOS_like
+#define macosx() "macosx" -> MacOS_like
   | FreeBSD
+#define freebsd() "freebsd" -> FreeBSD
   | NetBSD
+#define netbsd() "netbsd" -> NetBSD
   | OpenBSD
+#define openbsd() "openbsd" -> OpenBSD
   | Generic_BSD
+/* no occurrence */
   | Solaris
+#define solaris() "solaris" -> Solaris
   | Dragonfly
-  | GNU
-  | BeOS
-  | Unknown
-
-#define beos()      "beos"      -> BeOS
-#define cygwin()    "cygwin"    -> Cygwin
 #define dragonfly() "dragonfly" -> Dragonfly
-#define freebsd()   "freebsd"   -> FreeBSD
-#define gnu()       "gnu"       -> GNU
-#define linux()     "linux"     -> Linux
-#define macosx()    "macosx"    -> MacOS_like
-#define mingw()     "mingw"     -> MinGW_32
-#define mingw64()   "mingw64"   -> MinGW_64
-#define netbsd()    "netbsd"    -> NetBSD
-#define openbsd()   "openbsd"   -> OpenBSD
-#define solaris()   "solaris"   -> Solaris
-#define win32()     "win32"     -> Win32
-#define win64()     "win64"     -> Win64
-#define unknown()   "unknown"   -> Unknown
+  | GNU
+#define gnu() "gnu" -> GNU
+  | BeOS
+#define beos() "beos" -> BeOS
+  | Unknown
+#define unknown() "unknown" -> Unknown
 
 #define MATCH_TARGET(PAT,NATIVE,ARCH,MODEL,SYSTEM) \
   | #ARCH, #MODEL, SYSTEM()
