@@ -1,23 +1,3 @@
-type architecture =
-  | IA32
-  | X86_64
-  | ARM
-  | AArch64
-  | POWER
-  | Z
-  | Riscv
-
-let architecture () : architecture =
-  match Config.architecture with
-  | "i386" -> IA32
-  | "amd64" -> X86_64
-  | "arm" -> ARM
-  | "arm64" -> AArch64
-  | "power" -> POWER
-  | "s390x" -> Z
-  | "riscv" -> Riscv
-  | arch -> Misc.fatal_errorf "Unknown architecture `%s'" arch
-
 type derived_system =
   | Linux
   | MinGW_32
@@ -52,29 +32,19 @@ type derived_system =
 #define win64()     "win64"     -> Win64
 #define unknown()   "unknown"   -> Unknown
 
-#define amd64() X86_64
-#define arm() ARM
-#define arm64() AArch64
-#define i386() IA32
-#define power() POWER
-#define riscv() Riscv
-#define s390x() Z
-/* TODO: Map to freestanding */
-#define none() _
-
 #define MATCH_TARGET(PAT,NATIVE,ARCH,MODEL,SYSTEM) \
-  | ARCH(), #MODEL, SYSTEM()
+  | #ARCH, #MODEL, SYSTEM()
 
 /* The 32-bit variants are ignored as the only occurrence in the current source
  * is a duplicate of another case */
 #define MATCH_TARGET_AND_64(PAT,ARCH64,MODEL64,ARCH32,MODEL32,SYSTEM) \
-  | ARCH64(), #MODEL64, SYSTEM() \
+  | #ARCH64, #MODEL64, SYSTEM()
 
 #define DEFAULT(NATIVE,ARCH,MODEL,SYSTEM) \
-  | ARCH(), #MODEL, SYSTEM()
+  | #ARCH, #MODEL, SYSTEM()
 
 let derived_system () : derived_system =
-  match architecture (), Config.model, Config.system with
+  match Config.architecture, Config.model, Config.system with
 #include "target_system_cases.tbl"
   | _, _, _ ->
     Misc.fatal_errorf

@@ -80,7 +80,7 @@
   build_path_prefix_map
   misc
   format_doc
-  target_system_cases
+  target_derived_system
   target_system
   identifiable
   numbers
@@ -231,7 +231,7 @@
 
 (copy_files ../../utils/target_system.ml)
 
-(copy_files ../../utils/target_system_cases.ml)
+(copy_files ../../utils/target_derived_system.ml)
 
 (copy_files ../../utils/identifiable.ml)
 
@@ -700,7 +700,7 @@
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Config.cmo
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Format_doc.cmo
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Misc.cmo
-  .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Target_system_cases.cmo
+  .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Target_derived_system.cmo
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Target_system.cmo
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Arg_helper.cmo
   .dynlink_compilerlibs.objs/byte/dynlink_compilerlibs__Identifiable.cmo
@@ -826,7 +826,7 @@
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Config.cmx
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Format_doc.cmx
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Misc.cmx
-  .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Target_system_cases.cmx
+  .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Target_derived_system.cmx
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Target_system.cmx
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Arg_helper.cmx
   .dynlink_compilerlibs.objs/native/dynlink_compilerlibs__Identifiable.cmx

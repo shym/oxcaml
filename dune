@@ -175,7 +175,7 @@
   binutils
   local_store
   target_system
-  target_system_cases
+  target_derived_system
   compilation_unit
   import_info
   linkage_name

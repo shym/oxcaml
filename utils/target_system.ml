@@ -1,6 +1,26 @@
 [@@@ocaml.warning "+a-4-30-40-41-42"]
 
-include Target_system_cases
+type architecture =
+  | IA32
+  | X86_64
+  | ARM
+  | AArch64
+  | POWER
+  | Z
+  | Riscv
+
+let architecture () : architecture =
+  match Config.architecture with
+  | "i386" -> IA32
+  | "amd64" -> X86_64
+  | "arm" -> ARM
+  | "arm64" -> AArch64
+  | "power" -> POWER
+  | "s390x" -> Z
+  | "riscv" -> Riscv
+  | arch -> Misc.fatal_errorf "Unknown architecture `%s'" arch
+
+include Target_derived_system
 
 let is_arm () =
   match architecture () with
