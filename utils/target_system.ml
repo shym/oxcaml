@@ -109,9 +109,9 @@ end
 
 module Machine_width = struct
   type t =
-    | Thirty_two  (* Traditional 32-bit OCaml with GC tag bit *)
-    | Thirty_two_no_gc_tag_bit  (* JavaScript mode with full 32-bit integers *)
-    | Sixty_four  (* Traditional 64-bit OCaml with GC tag bit *)
+    | Thirty_two (* Traditional 32-bit OCaml with GC tag bit *)
+    | Thirty_two_no_gc_tag_bit (* JavaScript mode with full 32-bit integers *)
+    | Sixty_four (* Traditional 64-bit OCaml with GC tag bit *)
 
   let print ppf = function
     | Thirty_two -> Format.fprintf ppf "Thirty_two"
@@ -122,7 +122,8 @@ module Machine_width = struct
     match t1, t2 with
     | Thirty_two, Thirty_two
     | Thirty_two_no_gc_tag_bit, Thirty_two_no_gc_tag_bit
-    | Sixty_four, Sixty_four -> true
+    | Sixty_four, Sixty_four ->
+      true
     | _ -> false
 
   let is_32_bit = function
