@@ -492,8 +492,8 @@ module Dwarf_helpers = struct
     let can_emit_dwarf = !Clflags.debug && not disable_dwarf in
     match
       ( can_emit_dwarf,
-        Target_system.architecture (),
-        Target_system.derived_system () )
+        Target_system.Architecture.get (),
+        Target_system.System.derived_system () )
     with
     | true, (X86_64 | AArch64), _ -> sourcefile_for_dwarf := sourcefile
     | true, (IA32 | ARM | POWER | Z | Riscv), _ | false, _, _ -> ()
@@ -619,7 +619,8 @@ let emit_stapsdt_base_section () =
        convention. Hence, in this rare case, we create the symbol as a raw
        symbol for which no subsequent encoding will be done.*)
     let stapsdt_sym = S.Predef.stapsdt_base in
-    if not (Target_system.is_macos ())
+    (* CR shym System rather than Assembler.is_macos? *)
+    if not (Target_system.Assembler.is_macos ())
     then (
       D.weak stapsdt_sym;
       D.hidden stapsdt_sym);
@@ -631,7 +632,7 @@ let emit_stapsdt_base_section () =
 let emit_elf_note ~section ~owner ~typ ~emit_desc =
   let module D = Asm_targets.Asm_directives in
   let module L = Asm_targets.Asm_label in
-  let bytes = if Target_system.is_macos () then 8 else 4 in
+  let bytes = if Target_system.Assembler.is_macos () then 8 else 4 in
   D.align ~fill:Zero ~bytes;
   let a = L.create section in
   let b = L.create section in

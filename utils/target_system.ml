@@ -1,66 +1,111 @@
 [@@@ocaml.warning "+a-4-30-40-41-42"]
 
-type architecture =
-  | IA32
-  | X86_64
-  | ARM
-  | AArch64
-  | POWER
-  | Z
-  | Riscv
+module Architecture = struct
+  type t =
+    | IA32
+    | X86_64
+    | ARM
+    | AArch64
+    | POWER
+    | Z
+    | Riscv
 
-let architecture () : architecture =
-  match Config.architecture with
-  | "i386" -> IA32
-  | "amd64" -> X86_64
-  | "arm" -> ARM
-  | "arm64" -> AArch64
-  | "power" -> POWER
-  | "s390x" -> Z
-  | "riscv" -> Riscv
-  | arch -> Misc.fatal_errorf "Unknown architecture `%s'" arch
+  let get () : t =
+    match Config.architecture with
+    | "i386" -> IA32
+    | "amd64" -> X86_64
+    | "arm" -> ARM
+    | "arm64" -> AArch64
+    | "power" -> POWER
+    | "s390x" -> Z
+    | "riscv" -> Riscv
+    | arch -> Misc.fatal_errorf "Unknown architecture `%s'" arch
 
-include Target_derived_system
+  let is_arm () = match get () with ARM | AArch64 -> true | _ -> false
 
-let is_arm () =
-  match architecture () with
-  | ARM | AArch64 -> true
-  | _ -> false
+  let is_64_bit () =
+    match get () with
+    | X86_64 | AArch64 | POWER | Z | Riscv -> true
+    | IA32 | ARM -> false
 
-let is_64_bit () =
-  match architecture () with
-  | X86_64
-  | AArch64
-  | POWER
-  | Z
-  | Riscv -> true
-  | IA32
-  | ARM -> false
+  let is_32_bit () = not (is_64_bit ())
+end
 
-let is_32_bit () = not (is_64_bit ())
+module System = struct
+  include Target_derived_system
 
-let is_windows () =
-  match derived_system () with
-  | Linux | MacOS_like | FreeBSD | NetBSD | OpenBSD | Solaris | Dragonfly | GNU
-  | BeOS | Unknown ->
-    false
-  | MinGW_32 | MinGW_64 | Win32 | Win64 | Cygwin -> true
+  let is_windows () =
+    match derived_system () with
+    | Linux | MacOS_like | FreeBSD | NetBSD | OpenBSD | Solaris | Dragonfly
+    | GNU | BeOS | Unknown ->
+      false
+    | MinGW_32 | MinGW_64 | Win32 | Win64 | Cygwin -> true
 
-type assembler =
-  | GAS_like
-  | MacOS
-  | MASM
+  let is_macos () =
+    match derived_system () with
+    | Linux | FreeBSD | NetBSD | OpenBSD | Solaris | Dragonfly | GNU | BeOS
+    | Unknown | MinGW_32 | MinGW_64 | Win32 | Win64 | Cygwin ->
+      false
+    | MacOS_like -> true
 
-(* CR shym Why is it a function instead of a constant as, for instance,
-   [Asm_label.label_prefix] will require its value at initialisation? (Maybe
-   it's turned into a constant function and inlined by Flambda2 anyway?) *)
-let assembler () =
-  match derived_system () with
-  | Win32 | Win64 -> MASM
-  | MacOS_like -> MacOS
-  | MinGW_32 | MinGW_64 | Cygwin | Linux | FreeBSD | NetBSD | OpenBSD
-  | Solaris | GNU | Dragonfly | BeOS | Unknown ->
-    GAS_like
+  type windows_system =
+    | Cygwin
+    | MinGW
+    | Native
+
+  type t =
+    | Linux
+    | Windows of windows_system
+    | MacOS_like
+    | FreeBSD
+    | NetBSD
+    | OpenBSD
+    | Solaris
+    | Dragonfly
+    | GNU
+    | BeOS
+    | Unknown
+
+  let get () : t =
+    match derived_system () with
+    | Linux -> Linux
+    | MinGW_32 | MinGW_64 -> Windows MinGW
+    | Win32 | Win64 -> Windows Native
+    | Cygwin -> Windows Cygwin
+    | MacOS_like -> MacOS_like
+    | FreeBSD -> FreeBSD
+    | NetBSD -> NetBSD
+    | OpenBSD -> OpenBSD
+    | Solaris -> Solaris
+    | Dragonfly -> Dragonfly
+    | GNU -> GNU
+    | BeOS -> BeOS
+    | Unknown -> Unknown
+end
+
+module Assembler = struct
+  type t =
+    | GAS_like
+    | MacOS
+    | MASM
+
+  (* CR shym Why is it a function instead of a constant as, for instance,
+     [Asm_label.label_prefix] will require its value at initialisation? (Maybe
+     it's turned into a constant function and inlined by Flambda2 anyway?) *)
+  let get () =
+    match System.derived_system () with
+    | Win32 | Win64 -> MASM
+    | MacOS_like -> MacOS
+    | MinGW_32 | MinGW_64 | Cygwin | Linux | FreeBSD | NetBSD | OpenBSD
+    | Solaris | GNU | Dragonfly | BeOS | Unknown ->
+      GAS_like
+
+  let is_macos () =
+    match get () with MASM | GAS_like -> false | MacOS -> true
+
+  let is_gas () =
+    match get () with MASM | MacOS -> false | GAS_like -> true
+end
 
 module Machine_width = struct
   type t =
@@ -92,47 +137,3 @@ module Machine_width = struct
     | Thirty_two | Thirty_two_no_gc_tag_bit -> 4
     | Sixty_four -> 8
 end
-
-type windows_system =
-  | Cygwin
-  | MinGW
-  | Native
-
-type system =
-  | Linux
-  | Windows of windows_system
-  | MacOS_like
-  | FreeBSD
-  | NetBSD
-  | OpenBSD
-  | Solaris
-  | Dragonfly
-  | GNU
-  | BeOS
-  | Unknown
-
-let system () : system =
-  match derived_system () with
-  | Linux -> Linux
-  | MinGW_32 | MinGW_64 -> Windows MinGW
-  | Win32 | Win64 -> Windows Native
-  | Cygwin -> Windows Cygwin
-  | MacOS_like -> MacOS_like
-  | FreeBSD -> FreeBSD
-  | NetBSD -> NetBSD
-  | OpenBSD -> OpenBSD
-  | Solaris -> Solaris
-  | Dragonfly -> Dragonfly
-  | GNU -> GNU
-  | BeOS -> BeOS
-  | Unknown -> Unknown
-
-let is_macos () =
-  match assembler () with
-  | MASM | GAS_like -> false
-  | MacOS -> true
-
-let is_gas () =
-  match assembler () with
-  | MASM | MacOS -> false
-  | GAS_like -> true
