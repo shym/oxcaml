@@ -146,11 +146,9 @@ module Assembler = struct
     | Solaris | GNU | Dragonfly | BeOS | Unknown ->
       GAS_like
 
-  let is_macos () =
-    match get () with MASM | GAS_like -> false | MacOS -> true
+  let is_macos () = match get () with MASM | GAS_like -> false | MacOS -> true
 
-  let is_gas () =
-    match get () with MASM | MacOS -> false | GAS_like -> true
+  let is_gas () = match get () with MASM | MacOS -> false | GAS_like -> true
 end
 
 module Machine_width = struct
