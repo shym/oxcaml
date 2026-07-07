@@ -33,7 +33,52 @@ end
 
 module System = struct
   (* CR shym Maybe get rid of derived systems and return system directly? *)
-  include Target_derived_system
+  (* CR shym Why [MacOS_like] instead of simply [MacOS]? *)
+  type derived_system =
+    | Linux
+    | MinGW_32
+    | MinGW_64
+    | Win32
+    | Win64
+    | Cygwin
+    | MacOS_like
+    | FreeBSD
+    | NetBSD
+    | OpenBSD
+    | Solaris
+    | Dragonfly
+    | GNU
+    | BeOS
+    | Unknown
+
+  (* CR shym It's unclear to me what we gain here by matching on [architecture]
+     and [model], as the result is really only related to the value of [system].
+     Is there a historical reason with some strange case where some generic
+     value in [Config.system] could be made more precise by looking at the other
+     settings? Or was it to ensure somewhere that [Target_system] and
+     [configure] are somewhat consistent? *)
+  let derived_system () : derived_system =
+    match Config.system with
+    | "beos" -> BeOS
+    | "cygwin" -> Cygwin
+    | "dragonfly" -> Dragonfly
+    | "freebsd" -> FreeBSD
+    | "gnu" -> GNU
+    | "linux" -> Linux
+    | "macosx" -> MacOS_like
+    | "mingw64" -> MinGW_64
+    | "mingw" -> MinGW_32
+    | "netbsd" -> NetBSD
+    | "openbsd" -> OpenBSD
+    | "solaris" -> Solaris
+    | "win32" -> Win32
+    | "win64" -> Win64
+    | "unknown" -> Unknown
+    | _ ->
+      Misc.fatal_errorf
+        "Cannot determine system type (%s): ensure `target_system.ml' matches \
+         `configure'"
+        Config.system
 
   let is_windows () =
     match derived_system () with
