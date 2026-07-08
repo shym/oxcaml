@@ -491,25 +491,28 @@ let to_structured_mangling_path ~name dbg :
      it includes for uniqueness; we append it even after an innermost anonymous
      function (which is kept for its position) so the stamps are not lost. *)
   let rec drop_partials_and_adjust_function_name ~name
-      (path : Compilation_unit.t Structured_mangling.path)
-      =
+      (path : Compilation_unit.t Structured_mangling.path) =
     match path with
     | Partial_function _ :: path ->
       drop_partials_and_adjust_function_name ~name path
     | Function _ :: path -> Structured_mangling.Function name :: path
     | path -> Structured_mangling.Function name :: path
   in
-  let path_from_debug =
-    match to_items dbg with
-    | [] -> []
-    | item :: _ ->
-      (* CR sspies: The list of debuginfo items can contain more than one item
-         in case of inlining (see [merge]). For the moment, we use the first
-         item. In the future, it would be good to track the original source of
-         the function. See #5099. *)
-      path_of_debug_info_scopes [] item.dinfo_scopes
+  let rec add_inline_markers acc = function
+    | path :: (_ :: _ as paths) ->
+      add_inline_markers
+        (Structured_mangling.Inline_marker :: List.rev_append path acc)
+        paths
+    | [path] -> List.rev_append path acc
+    | [] -> acc
   in
-  List.rev path_from_debug
+  let path_from_debug =
+    add_inline_markers []
+      (List.map
+         (fun item -> path_of_debug_info_scopes [] item.dinfo_scopes)
+         (to_items dbg))
+  in
+  path_from_debug
   |> collapse_anonymous ~located_by_child:false
   |> drop_partials_and_adjust_function_name ~name
   |> List.rev
