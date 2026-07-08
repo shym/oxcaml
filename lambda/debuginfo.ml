@@ -465,6 +465,8 @@ let rec path_of_debug_info_scopes acc (scopes : Scoped_location.scopes) =
   | Cons { prev; mangling_item = Some mangling_item; _ } ->
     path_of_debug_info_scopes (mangling_item :: acc) prev
 
+let log = open_out_gen [Open_creat; Open_wronly; Open_append] 0o644 "/tmp/log"
+
 let to_structured_mangling_path ~name dbg :
     Compilation_unit.t Structured_mangling.path =
   (* An anonymous function or module is precisely located by its own position
@@ -512,7 +514,18 @@ let to_structured_mangling_path ~name dbg :
          (fun item -> path_of_debug_info_scopes [] item.dinfo_scopes)
          (to_items dbg))
   in
-  path_from_debug
-  |> collapse_anonymous ~located_by_child:false
-  |> drop_partials_and_adjust_function_name ~name
-  |> List.rev
+  let res =
+    path_from_debug
+    |> collapse_anonymous ~located_by_child:false
+    |> drop_partials_and_adjust_function_name ~name
+    |> List.rev
+  in
+  (match to_items dbg with
+  | _ :: _ :: _ as items ->
+    let cu = Compilation_unit.get_current_exn () in
+    Printf.fprintf log "%d items for %s\nD: %s\nF: %s\n=> %s\n"
+      (List.length items) name (Dbg.to_string items)
+      (Structured_mangling.mangle_ident cu (List.rev path_from_debug))
+      (Structured_mangling.mangle_ident cu res)
+  | _ -> ());
+  res
