@@ -500,16 +500,20 @@ let to_structured_mangling_path ~name dbg :
     | Function _ :: path -> Structured_mangling.Function name :: path
     | path -> Structured_mangling.Function name :: path
   in
-  let rec add_inline_markers acc = function
+  let rec last = function
+    | [x] -> x
+    | _ :: xs -> last xs
+    | [] -> assert false
+  in
+  let add_inline_marker = function
+    | [] -> []
+    | [path] -> List.rev path
     | path :: (_ :: _ as paths) ->
-      add_inline_markers
-        (Structured_mangling.Inline_marker :: List.rev_append path acc)
-        paths
-    | [path] -> List.rev_append path acc
-    | [] -> acc
+      List.rev_append (last paths)
+        (Structured_mangling.Inline_marker :: List.rev path)
   in
   let path_from_debug =
-    add_inline_markers []
+    add_inline_marker
       (List.map
          (fun item -> path_of_debug_info_scopes [] item.dinfo_scopes)
          (to_items dbg))
