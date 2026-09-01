@@ -561,7 +561,7 @@ let win64 =
   match Target_system.System.get () with
   | Windows (MinGW | MSVC) | Cygwin -> true
   | Linux | MacOS | FreeBSD | NetBSD | OpenBSD | Solaris | Dragonfly | GNU
-  | BeOS | Unknown ->
+  | BeOS ->
     false
 
 
