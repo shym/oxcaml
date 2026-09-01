@@ -40,8 +40,6 @@ module System : sig
 
   val get : unit -> t
 
-  val is_windows : unit -> bool
-
   val is_macos : unit -> bool
 end
 
