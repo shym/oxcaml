@@ -691,7 +691,10 @@ let emit_MOV b dst src =
       emit_rex b (rexw lor rexb_opcode reg);
       buf_int8 b (0xB8 lor reg7 reg);
       buf_int64L b n
-  | Reg64 r64, Sym symbol when windows ->
+  | Reg64 r64, Sym symbol when
+      (* CR shym Check that those are really the cases that need to be
+         handled differently *)
+      Target_system.Assembler.is_windows_or_cygwin () ->
       let reg = rd_of_reg64 r64 in
       emit_rex b (rexw lor rexb_opcode reg);
       buf_int8 b (0xB8 lor reg7 reg);

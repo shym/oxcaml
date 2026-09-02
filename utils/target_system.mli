@@ -56,6 +56,10 @@ module Assembler : sig
 
   val is_gas : unit -> bool
 
+  val is_masm : unit -> bool
+
+  val is_windows_or_cygwin : unit -> bool
+
   val label_prefix : unit -> string
 end
 

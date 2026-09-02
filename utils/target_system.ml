@@ -106,6 +106,15 @@ module Assembler = struct
 
   let is_gas () = match get () with MASM | MacOS -> false | GAS_like -> true
 
+  let is_masm () = match get () with MacOS | GAS_like -> false | MASM -> true
+
+  let is_windows_or_cygwin () =
+    match System.get () with
+    | Windows (MinGW | MSVC) | Cygwin -> true
+    | Linux | MacOS | FreeBSD | NetBSD | OpenBSD | Solaris | Dragonfly | GNU
+    | BeOS ->
+      false
+
   let label_prefix () =
     match get () with MacOS -> "L" | MASM | GAS_like -> ".L"
 end

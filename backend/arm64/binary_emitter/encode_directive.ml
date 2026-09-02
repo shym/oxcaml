@@ -223,7 +223,8 @@ let is_rela_platform () =
   match Target_system.System.get () with
   | Linux | FreeBSD | NetBSD | OpenBSD -> true
   | MacOS -> false
-  | _ -> false (* Default to REL behavior for unknown systems *)
+  | Windows (MinGW | MSVC) | Cygwin | Solaris | Dragonfly | GNU | BeOS ->
+    false (* Default to REL behavior for other systems *)
 
 (* Encode a Symbol.target to its string representation *)
 let encode_target (target : Symbol.target) : string =
