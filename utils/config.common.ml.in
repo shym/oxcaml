@@ -208,3 +208,6 @@ let name_mangling_scheme =
   | "flat" -> Flat
   | "structured" -> Structured
   | s -> raise (Invalid_name_mangling_scheme s)
+
+let architecture_ = architecture
+let system_ = system

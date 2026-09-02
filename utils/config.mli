@@ -191,13 +191,13 @@ val native_compiler: bool
 
     @since 5.1 *)
 
-val architecture: string
+val architecture_: string
 (** Name of processor type for the native-code compiler *)
 
 val model: string
 (** Name of processor submodel for the native-code compiler *)
 
-val system: string
+val system_: string
 (** Name of operating system for the native-code compiler *)
 
 val target_os_type: string

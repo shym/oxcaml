@@ -11,7 +11,7 @@ module Architecture = struct
     | Riscv
 
   let get () : t =
-    match Config.architecture with
+    match Config.architecture_ with
     | "i386" -> IA32
     | "amd64" -> X86_64
     | "arm" -> ARM
@@ -50,7 +50,7 @@ module System = struct
     | BeOS
 
   let get () : t =
-    match Config.system with
+    match Config.system_ with
     | "linux" -> Linux
     | "mingw" | "mingw64" -> Windows MinGW
     | "win32" | "win64" -> Windows MSVC
@@ -68,7 +68,7 @@ module System = struct
       Misc.fatal_errorf
         "Cannot determine system type (%s): ensure `target_system.ml' matches \
          `configure'"
-        Config.system
+        Config.system_
 
   let is_macos () =
     match get () with
