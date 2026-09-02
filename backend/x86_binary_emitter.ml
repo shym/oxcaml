@@ -408,7 +408,9 @@ let declare_label b s =
 let buf_opcodes b opcodes =
   ListLabels.iter ~f:(fun opcode -> buf_int8 b opcode) opcodes
 
-let arch64 = String.equal Config.architecture_ "amd64"
+(* CR shym Should this be turned into a function (ie directly call is_64_bit in
+   emit_rex)? Or a lazy value? *)
+let arch64 = Target_system.Architecture.is_64_bit ()
 
 let emit_rex b rexcode =
   if arch64 && rexcode <> 0 then buf_int8 b (rexcode lor rex)

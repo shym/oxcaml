@@ -16,6 +16,8 @@ module Architecture : sig
 
   (* CR mshinwell: what happens about these functions for JSIR? *)
   val is_32_bit : unit -> bool
+
+  val to_string : t -> string
 end
 
 module System : sig

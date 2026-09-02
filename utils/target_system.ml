@@ -29,6 +29,15 @@ module Architecture = struct
     | IA32 | ARM -> false
 
   let is_32_bit () = not (is_64_bit ())
+
+  let to_string = function
+    | IA32 -> "IA32"
+    | X86_64 -> "X86_64"
+    | ARM -> "ARM"
+    | AArch64 -> "AArch64"
+    | POWER -> "POWER"
+    | Z -> "Z"
+    | Riscv -> "Riscv"
 end
 
 module System = struct
