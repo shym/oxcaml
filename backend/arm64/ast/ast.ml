@@ -613,24 +613,24 @@ module Symbol = struct
   let print_with_reloc_directive : type w.
       Format.formatter -> string * w reloc_directive -> unit =
    fun ppf (s, reloc) ->
-    let macosx = Target_system.Toolchain.is_macos () in
+    let macos = Target_system.Toolchain.is_macos () in
     match reloc with
     | LOWER_TWELVE -> Format.fprintf ppf ":lo12:%s" s
     | GOT_LOWER_TWELVE -> Format.fprintf ppf ":got_lo12:%s" s
     | GOT_PAGE ->
-      if macosx
+      if macos
       then Format.fprintf ppf "%s@GOTPAGE" s
       else Format.fprintf ppf ":got:%s" s
     | GOT_PAGE_OFF ->
-      if macosx
+      if macos
       then Format.fprintf ppf "%s@GOTPAGEOFF" s
       else Format.fprintf ppf ":got_lo12:%s" s
     | PAGE ->
-      if macosx
+      if macos
       then Format.fprintf ppf "%s@PAGE" s
       else Format.fprintf ppf "%s" s
     | PAGE_OFF ->
-      if macosx
+      if macos
       then Format.fprintf ppf "%s@PAGEOFF" s
       else Format.fprintf ppf ":lo12:%s" s
     | CALL26 | JUMP26 ->
