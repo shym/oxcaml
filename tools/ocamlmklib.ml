@@ -18,7 +18,7 @@ open Printf
 let mklib out files opts =
   if Config.ccomp_type = "msvc"
   then let machine =
-    if Config.architecture="amd64"
+    if Config.architecture_="amd64"
     then "-machine:AMD64 "
     else ""
   in

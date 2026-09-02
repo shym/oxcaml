@@ -269,7 +269,7 @@ let std_include_dir () =
 let shared = ref false (* -shared *)
 let dlcode = ref true (* not -nodynlink *)
 
-let pic_code = ref (match Config.architecture with (* -fPIC *)
+let pic_code = ref (match Config.architecture_ with (* -fPIC *)
                      | "amd64" | "s390x" -> true
                      | _                 -> false)
 

@@ -88,7 +88,7 @@ let postcondition_layout : Cfg_with_layout.t -> unit =
   in
   let arch_constraints (id : InstructionId.t) (desc : Cfg.basic)
       (arg : Reg.t array) (res : Reg.t array) : unit =
-    match Config.architecture with
+    match Config.architecture_ with
     (* CR xclerc for xclerc: what about cross-compilation? *)
     | "amd64" | "arm64" -> (
       let num_locals = num_stack_locals arg + num_stack_locals res in

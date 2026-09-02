@@ -51,7 +51,7 @@ let compute_branch_imm26 state ~instr_name ~reloc_kind (sym : _ Symbol.t) =
       ~reloc_kind:(reloc_kind r)
   in
   (* On Linux ELF, emit relocations for global symbols to match assembler *)
-  let macosx = String.equal Config.system "macosx" in
+  let macosx = String.equal Config.system_ "macosx" in
   if (not macosx) && is_global_symbol
   then (
     make_reloc ();

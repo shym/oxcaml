@@ -109,7 +109,7 @@ let is_cross_section_relative_reference state ~all_sections ~current_section c =
     match SS.find_target_offset_in_bytes state target with
     | Some _ -> None (* Same section, use normal eval *)
     | None -> (
-      let macosx = String.equal Config.system "macosx" in
+      let macosx = String.equal Config.system_ "macosx" in
       let for_jit = All_section_states.for_jit all_sections in
       let current_section_supports_cross_section_reference =
         Asm_section.equal current_section Asm_section.Data
@@ -217,7 +217,7 @@ let is_cross_section_relative_reference state ~all_sections ~current_section c =
    in the relocation entry rather than in the instruction/data. On REL platforms
    (macOS Mach-O), addends are encoded in the instruction. *)
 let is_rela_platform () =
-  match Config.system with
+  match Config.system_ with
   | "linux" | "linux_eabi" | "linux_eabihf" | "freebsd" | "netbsd" | "openbsd"
     ->
     true

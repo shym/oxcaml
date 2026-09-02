@@ -42,7 +42,7 @@ type system =
   | S_unknown
 
 let system =
-  match Config.system with
+  match Config.system_ with
   | "macosx" -> S_macosx
   | "solaris" -> S_solaris
   | "win32" -> S_win32

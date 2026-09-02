@@ -408,7 +408,7 @@ let declare_label b s =
 let buf_opcodes b opcodes =
   ListLabels.iter ~f:(fun opcode -> buf_int8 b opcode) opcodes
 
-let arch64 = String.equal Config.architecture "amd64"
+let arch64 = String.equal Config.architecture_ "amd64"
 
 let emit_rex b rexcode =
   if arch64 && rexcode <> 0 then buf_int8 b (rexcode lor rex)
