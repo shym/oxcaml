@@ -27,6 +27,13 @@ jobs:
             build_debug: true
             sysdeps: gdb
 
+          - name: dissector-assembler (x86_64-linux)
+            os: warp-ubuntu-latest-x64-8x
+            oxcaml_llvm_tag: oxcaml-llvmize-16.0.6-minus3
+            oxcaml_llvm_source_branch: llvmize-oxcaml
+            dissector_assembler: true
+            sysdeps: gdb
+
     env:
       J: "8"
       run_testsuite: "true"
